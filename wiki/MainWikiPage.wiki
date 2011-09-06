@@ -1,0 +1,15 @@
+#summary Wiki - home.
+
+= Introduction =
+
+Hopefully this wiki will never need to be very big, but I'm a huge fan of good documentation so I do plan to develop it once my code actually goes up on the website.
+
+= Details =
+
+The wiki will eventually include the following:
+
+  * Simple install guide (it should be extremely easy to install)
+  * Guide on how to use the system for calibration
+  * Link to calibration mask templates
+  * Link to calibration test data
+  * Discussion for future development
