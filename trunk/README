@@ -43,7 +43,7 @@ Run the following in the console:
 TO COMMIT CHANGES:
 ==================
 The project must be checked out in the way suggested by google (http://code.google.com/p/mm_calibrator/source/checkout):
-	svn checkout https://dd-evaluator.googlecode.com/svn/trunk/ mm_calibrator --username <YOUR USERNAME HERE>
+	svn checkout https://dd-evaluator.googlecode.com/svn/trunk/ mm-calibrator --username <YOUR USERNAME HERE>
 
 If you have created a file or folder and want to include it in the repository:
 	svn add <FILE/FOLDER NAME>
@@ -52,4 +52,4 @@ Alternatively, if you want to remove one from the repository:
 	svn delete <FILE/FOLDER NAME>
 
 Once your local sandbox is 'aligned' with the repository, to commit:
-	svn ci mm_calibrator
+	svn ci mm-calibrator
