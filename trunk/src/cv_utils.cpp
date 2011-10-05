@@ -131,6 +131,70 @@ void createGaussianMatrix(Mat& gaussianMat, double sigmaFactor) {
     */
 }
 
+void cropImage(Mat& image, Point tl, Point br) {
+    // not compatible with all image types yet...
+
+    int width, height, xOff, yOff;
+
+    //printf("%s << Starting function.\n", __FUNCTION__);
+
+    //printf("%s << TL = (%d, %d); BR = (%d, %d)\n", __FUNCTION__, tl.x, tl.y, br.x, br.y);
+
+    width = abs(br.x-tl.x);
+    height = abs(br.y-tl.y);
+
+    xOff = min(tl.x, br.x);
+    yOff = min(tl.y, br.y);
+
+    //printf("%s << width = %d, height = %d, xOff = %d, yOff = %d\n", __FUNCTION__, width, height, xOff, yOff);
+
+    //cin.get();
+
+    Mat tmpMat;
+
+    if (image.channels() == 3) {
+        tmpMat = Mat(height, width, CV_8UC3);
+    } else if (image.channels() == 1) {
+        tmpMat = Mat(height, width, CV_8UC1);
+    }
+
+
+
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            //printf("%s << %d / %d\n", __FUNCTION__, i, j);
+
+            if (image.channels() == 3) {
+                if ((j+yOff < 0) || (j+yOff > image.rows-1) || (i+xOff < 0) || (i+xOff > image.cols-1)) {
+                    tmpMat.at<Vec3b>(j,i)[0] = 0;
+                    tmpMat.at<Vec3b>(j,i)[1] = 0;
+                    tmpMat.at<Vec3b>(j,i)[2] = 0;
+                } else {
+                    tmpMat.at<Vec3b>(j,i) = image.at<Vec3b>(j+yOff,i+xOff);
+                }
+            } else if (image.channels() == 1) {
+                if ((j+yOff < 0) || (j+yOff > image.rows-1) || (i+xOff < 0) || (i+xOff > image.cols-1)) {
+                    tmpMat.at<unsigned char>(j,i) = 0;
+                } else {
+                    tmpMat.at<unsigned char>(j,i) = image.at<unsigned char>(j+yOff,i+xOff);
+                }
+
+
+            }
+
+
+
+
+        }
+    }
+
+    //tmpMat.copyTo(image);
+    resize(tmpMat, image, Size(width, height)); // working
+
+    //printf("%s << Completing function.\n", __FUNCTION__);
+
+}
+
 void convertVectorToPoint(vector<Point2f>& input, vector<Point>& output) {
     output.clear();
 

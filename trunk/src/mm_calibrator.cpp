@@ -2,6 +2,9 @@
 
 int main(int argc, char* argv[]) {
 
+    // Undistortion Parameters
+    double alpha = DEFAULT_ALPHA;
+
     char *directory;
     int numCams = DEFAULT_CAM_COUNT;
     bool wantsIntrinsics = false;
@@ -111,7 +114,7 @@ int main(int argc, char* argv[]) {
     DIR * dirp;
     struct dirent * entry;
 
-    vector<string> inputList[MAX_CAMS];
+    vector<string> inputList[MAX_CAMS], culledList;
 
     bool sameNum = true;
 
@@ -156,6 +159,8 @@ int main(int argc, char* argv[]) {
 
             printf("%s << inputList[%d] = %d\n", __FUNCTION__, nnn, inputList[nnn].size());
 
+
+
         }
 
         for (int nnn = 0; nnn < numCams-1; nnn++) {
@@ -168,9 +173,11 @@ int main(int argc, char* argv[]) {
             maxFramesToLoad = std::min((int)inputList[0].size(), (int)maxFramesToLoad);
             printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
 
-            randomCulling(inputList[0], maxFramesToLoad);
+            culledList = inputList[0];
 
-            sort(inputList[0].begin(), inputList[0].end());
+            randomCulling(culledList, maxFramesToLoad);
+
+            sort(culledList.begin(), culledList.end());
 
         } else {
             printf("%s << Frame count mismatch.\n", __FUNCTION__);
@@ -180,12 +187,14 @@ int main(int argc, char* argv[]) {
 
     FileStorage fs;
 
-    Mat imageSize_mat[MAX_CAMS], cameraMatrix[MAX_CAMS], newCamMat[MAX_CAMS], distCoeffs[MAX_CAMS];
+    Mat imageSize_mat[MAX_CAMS], cameraMatrix[MAX_CAMS], newCamMat[MAX_CAMS], distCoeffs[MAX_CAMS], rectCamMat[MAX_CAMS];
     Size imageSize_size[MAX_CAMS];
 
     for (unsigned int nnn = 0; nnn < numCams; nnn++) {
         imageSize_mat[nnn] = Mat(1, 2, CV_16UC1);
     }
+
+    Rect validROI[MAX_CAMS];
 
     if (wantsExtrinsics && (!wantsIntrinsics)) {
 
@@ -211,6 +220,8 @@ int main(int argc, char* argv[]) {
             printf("%s << distCoeffs[%d] = ", __FUNCTION__, nnn);
             cout << distCoeffs[nnn] << endl;
 
+            newCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], imageSize_size[nnn], alpha, imageSize_size[nnn], &validROI[nnn]);
+            rectCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], imageSize_size[nnn], 0.5, imageSize_size[nnn], &validROI[nnn]);
         }
     }
 
@@ -249,9 +260,9 @@ int main(int argc, char* argv[]) {
         index = 0;
 
         // For each frame for each camera
-        while (index < min((int)inputList[0].size(), maxFramesToLoad)) {
+        while (index < min((int)culledList.size(), maxFramesToLoad)) {
 
-            sprintf(filename, "%s%s", inStream[nnn], (inputList[0].at(index)).c_str());
+            sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
 
             printf("%s << filename = %s\n", __FUNCTION__, filename);
             inputMat[nnn] = imread(filename);
@@ -332,7 +343,7 @@ int main(int argc, char* argv[]) {
             for (unsigned int iii = 0; iii < cornersList[nnn].size(); iii++) {
                 if (foundRecord[nnn][iii] == true) {
                     intrinsicsList.push_back(cornersList[nnn].at(iii));
-                    extractedList.push_back(inputList[nnn].at(iii));
+                    extractedList.push_back(culledList.at(iii));
                     tagNames[nnn].push_back(iii);
 
                     //printf("%s << tagNames[%d].at(%d) = %d\n", __FUNCTION__, nnn, iii, tagNames[nnn].at(iii));
@@ -390,11 +401,10 @@ int main(int argc, char* argv[]) {
             cout << endl << "cameraMatrix = \n" << cameraMatrix[nnn] << endl;
             cout << "distCoeffs = \n" << distCoeffs[nnn] << endl << endl;
 
-            // Undistortion Parameters
-            double alpha = DEFAULT_ALPHA;
-            Rect validROI;
 
-            newCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], inputMat[nnn].size(), alpha, inputMat[nnn].size(), &validROI);
+
+            newCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], inputMat[nnn].size(), alpha, inputMat[nnn].size(), &validROI[nnn]);
+            rectCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], inputMat[nnn].size(), 0.5, inputMat[nnn].size(), &validROI[nnn]);
 
             cout << endl << "newCamMat = \n" << newCamMat[nnn] << endl;
 
@@ -419,6 +429,52 @@ int main(int argc, char* argv[]) {
 
             printf("%s << Writing to file...DONE.\n", __FUNCTION__);
 
+            if (wantsToUndistort) {
+
+
+                // Create directories
+
+                char newDirectoryPath[256];
+
+                sprintf(newDirectoryPath, "%s/%d-u", directory, nnn);
+                mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+
+                printf("%s << Undistorting Images...\n", __FUNCTION__);
+                Mat undistortedMat(inputMat[nnn].size(), CV_8UC3);
+
+                //videoReader.set(CV_CAP_PROP_POS_AVI_RATIO, 0.00);
+
+                char inputFilename[256], outputFilename[256];
+
+
+                for (int i = 0; i < inputList[nnn].size(); i++) {
+
+                    if (inputIsFolder) {
+                        //sprintf(inputFilename, "%s%d.%s", input, i+1, "jpg");
+                        sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
+                        inputMat[nnn] = imread(inputFilename);
+
+                    } else {
+                        //videoReader >> inputMat;
+                    }
+
+                    undistort(inputMat[nnn], undistortedMat, cameraMatrix[nnn], distCoeffs[nnn], newCamMat[nnn]);
+
+                    imshow("undistortedWin", undistortedMat);
+                    waitKey(40);
+
+                    if (inputIsFolder) {
+                        sprintf(outputFilename, "%s/%d.jpg", newDirectoryPath, i);
+                    } else {
+                        //sprintf(outputFilename, "%s%s%s", inputFolderString, "undistorted/", (inputList.at(i)).c_str());
+                    }
+
+                        //printf("%s << writing to file: %s\n", __FUNCTION__, outputFilename);
+
+                    imwrite(outputFilename, undistortedMat);
+
+                }
+            }
         }
 
 
@@ -585,92 +641,187 @@ int main(int argc, char* argv[]) {
 
         fs.release();
 
+        if (wantsToUndistort) {
+
+            // Obtain Rectification Maps
+            if (numCams == 2) {
+                printf("%s << 2 Cameras.\n", __FUNCTION__);
+
+                Rect roi1, roi2;
+
+                stereoRectify(cameraMatrix[0], distCoeffs[0], cameraMatrix[1], distCoeffs[1],
+                              imageSize_size[0],
+                              R[1], T[1],
+                              R_[0], R_[1], P_[0], P_[1],
+                              Q,
+                              CALIB_ZERO_DISPARITY,
+                              alpha, imageSize_size[0], &roi1, &roi2);
+
+                /*
+                stereoRectify(cameraMatrix[0], distCoeffs[0],
+                              cameraMatrix[1], distCoeffs[1],
+                              imSize.at(0),
+                              R[1], T[1],
+                              R_[0], R_[1], P_[0], P_[1],
+                              Q,
+                              alpha, imSize.at(0), &roi1, &roi2,
+                              CALIB_ZERO_DISPARITY);
+                  */
+
+            } else if (numCams == 3) {
+                printf("%s << 3 Camera rectification commencing. (alpha = %f)\n", __FUNCTION__, alpha);
+
+                double ratio =  rectify3Collinear(cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
+                                                    distCoeffs[1], cameraMatrix[2], distCoeffs[2],
+                                                    extrinsicsCandidates.at(0), extrinsicsCandidates.at(2),
+                                                    imageSize_size[0], R[1], T[1], R[2], T[2],
+                                                    R_[0], R_[1], R_[2], P_[0], P_[1], P_[2], Q, alpha,
+                                                    imageSize_size[0], 0, 0, CV_CALIB_ZERO_DISPARITY);
+
+                printf("%s << 3 Camera rectification complete.\n", __FUNCTION__);
+            }
+
+            Point pt1, pt2;
+            vector<Point2f> rectangleBounds, newRecBounds;
+
+            printf("%s << Undistorting\n", __FUNCTION__);
+
+            Mat mapx[MAX_CAMS], mapy[MAX_CAMS];
+
+            int topValidHeight = 0, botValidHeight = 65535, leftValid[MAX_CAMS], rightValid[MAX_CAMS];
+
+            Mat blankCoeffs(1, 8, CV_64F);
+
+            for (int i = 0; i < numCams; i++) {
+
+                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 0);
+
+
+
+                initUndistortRectifyMap(cameraMatrix[i],
+                                    distCoeffs[i],
+                                    R_[i],
+                                    P_[i],  // newCamMat[i]
+                                    imageSize_size[i],
+                                    CV_32F,     // CV_16SC2
+                                    mapx[i],    // map1[i]
+                                    mapy[i]);   // map2[i]
+
+                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 1);
+
+                pt1 = Point(validROI[i].x, validROI[i].y);
+                pt2 = Point(validROI[i].x + validROI[i].width, validROI[i].y + validROI[i].height);
+
+                rectangleBounds.push_back(Point2f(pt1.x, pt1.y));
+                rectangleBounds.push_back(Point2f(pt2.x, pt2.y));
+
+                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 2);
+
+                undistortPoints(Mat(rectangleBounds), newRecBounds, rectCamMat[i], blankCoeffs, R_[i], P_[i]);
+
+                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 3);
+
+                //printf("%s << Original rectangle points: = (%d, %d) & (%d, %d)\n", __FUNCTION__, pt1.x, pt1.y, pt2.x, pt2.y);
+
+                pt1 = Point(int(newRecBounds.at(0).x), int(newRecBounds.at(0).y));
+                pt2 = Point(int(newRecBounds.at(1).x), int(newRecBounds.at(1).y));
+
+                printf("%s << pt1 = (%d, %d); pt2 = (%d, %d)\n", __FUNCTION__, pt1.x, pt1.y, pt2.x, pt2.y);
+
+                if (pt1.y > topValidHeight) {
+                    topValidHeight = pt1.y;
+                }
+
+                if (pt2.y < botValidHeight) {
+                    botValidHeight = pt2.y;
+                }
+
+                leftValid[i] = pt1.x;
+                rightValid[i] = pt2.x;
+            }
+
+            printf("%s << topValidHeight = %d; botValidHeight = %d\n", __FUNCTION__, topValidHeight, botValidHeight);
+
+            vector<Point2f> leftLinePoints, rightLinePoints;
+
+            // Prepare epipolar lines etc:
+            for (int k = 1; k < 32; k++) {
+                // should try to center it on the final (thermal) image
+                leftLinePoints.push_back(Point2f(0, k*(botValidHeight - topValidHeight)/32 - 1));
+                rightLinePoints.push_back(Point2f(imageSize_size[0].width, k*(botValidHeight - topValidHeight)/32 - 1));
+            }
+
+            // Read in images again
+            for (int i = 0; i < numCams; i++) {
+
+                for (int index = 0; index < inputList[i].size(); index++) {
+
+                    char newDirectoryPath[256];
+                    sprintf(newDirectoryPath, "%s/%d-r", directory, i);
+                    mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+
+                    sprintf(filename, "%s%s", inStream[i], (inputList[i].at(index)).c_str());
+
+                    //printf("%s << Reading in image: %s\n", __FUNCTION__, filename);
+                    inputMat[i] = imread(filename);
+
+                    //printf("%s << Remapping...\n", __FUNCTION__);
+
+                    Mat undistortedMat;
+
+                    remap(inputMat[i], undistortedMat, mapx[i], mapy[i], INTER_LINEAR);
+
+
+                    Point x_1 = Point(leftValid[i], topValidHeight);
+                    Point x_2 = Point(rightValid[i], botValidHeight);
+
+                    //printf("%s << undistortedMat[%d].size() = (%d, %d); x = (%d, %d); y = (%d, %d)\n", __FUNCTION__, i, undistortedMat[i].size().width, undistortedMat[i].size().height, x_1.x, x_1.y, x_2.x, x_2.y);
+
+                    cropImage(undistortedMat, x_1, x_2);
+
+                    //printf("%s << Resizing...\n", __FUNCTION__);
+
+                    Mat tmpMat;
+                    resize(undistortedMat, tmpMat, Size(), 2.0, 2.0);
+                    tmpMat.copyTo(undistortedMat);
+
+                    //printf("%s << DEBUG __%d:%d\n", __FUNCTION__, index, 0);
+
+                    //printf("%s << Drawing...\n", __FUNCTION__);
+
+                    // Draw lines
+                    Point2f left, right;
+                    /*
+                    for (int k = 0; k < 8; k++) {
+                        left = Point2f(0, (k+1)*(undistortedMat[i].rows)/8 - 1);
+                        right = Point2f(undistortedMat[i].cols, (k+1)*(undistortedMat[i].rows)/8 - 1);
+                        line(undistortedMat[i], left, right, color);
+                    }
+                    */
+
+                    //printf("%s << DEBUG __%d:%d\n", __FUNCTION__, index, 1);
+
+
+                    // Flip the undistorted mat (this is annoying but may be required...)
+                    //flip(undistortedMat[i], inputMat[i], -1);
+
+                    //printf("%s << Displaying...\n", __FUNCTION__);
+
+                    imshow("displayWindow", undistortedMat);
+                    waitKey(40);
+
+                    sprintf(filename, "%s/%d.jpg", newDirectoryPath, index);
+                    imwrite(filename, undistortedMat);
+                }
+
+            }
+
+            printf("%s << Finished undistorting.\n", __FUNCTION__);
+
+
+        }
+
     }
-
-//            grandTotalTime = getTickCount() - grandTotalTime;
-//
-//            printf("%s << Absolute total calibration time = %f\n", __FUNCTION__, grandTotalTime*1000/getTickFrequency());
-//
-//            for (int k = 0; k < nCams; k++) {
-//
-//                Rodrigues(R[k], Rv[k]);
-//
-//                /*
-//                cout << "cameraMatrix[" << k << "] = \n" << cameraMatrix[k] << endl;
-//                cout << "distCoeffs[" << k << "] = \n" << distCoeffs[k] << endl;
-//                */
-//
-//                Mat Rdeg;
-//
-//                Rv[k].copyTo(Rdeg);
-//
-//                for (int z = 0; z < Rdeg.cols; z++) {
-//                    Rdeg.at<double>(0,z) *= (180 / PI);
-//                }
-//
-//                cout << "T[" << k << "] = " << T[k] << endl;
-//                cout << "Rdeg[" << k << "] = " << Rdeg << endl << endl;
-//            }
-//
-//            Rect roi1, roi2;
-//
-//            printf("%s << Before ERE Calculation.\n", __FUNCTION__);
-//
-//            // Calculate ERE
-//            double tMean, tDev;
-//
-//            printf("%s << DEBUG %d\n", __FUNCTION__, 0);
-//
-//            tMean = svLib::calculateExtrinsicERE(nCams, objectPoints.at(0), vvvTestingPatterns, cameraMatrix, distCoeffs, R, T);
-//
-//            printf("%s << DEBUG %d\n", __FUNCTION__, 1);
-//
-//            tDev = pow(tMean/vvvTestingPatterns.at(0).size(), 0.5);
-//
-//            printf("%s << ERE : Extended Reprojection Error = %f\n", __FUNCTION__, tMean);
-//
-//            // Obtain Rectification Maps
-//            if (nCams == 2) {
-//                printf("%s << 2 Cameras.\n", __FUNCTION__);
-//
-//                stereoRectify(cameraMatrix[0], distCoeffs[0], cameraMatrix[1], distCoeffs[1],
-//                              imSize.at(0),
-//                              R[1], T[1],
-//                              R_[0], R_[1], P_[0], P_[1],
-//                              Q,
-//                              CALIB_ZERO_DISPARITY,
-//                              alpha, imSize.at(0), &roi1, &roi2);
-//
-//                /*
-//                stereoRectify(cameraMatrix[0], distCoeffs[0],
-//                              cameraMatrix[1], distCoeffs[1],
-//                              imSize.at(0),
-//                              R[1], T[1],
-//                              R_[0], R_[1], P_[0], P_[1],
-//                              Q,
-//                              alpha, imSize.at(0), &roi1, &roi2,
-//                              CALIB_ZERO_DISPARITY);
-//                  */
-//
-//            } else if (nCams == 3) {
-//                printf("%s << 3 Camera rectification commencing. (alpha = %f)\n", __FUNCTION__, alpha);
-//
-//                double ratio =  rectify3Collinear(cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
-//                                                    distCoeffs[1], cameraMatrix[2], distCoeffs[2],
-//                                                    vvvCandidatePatterns.at(0), vvvCandidatePatterns.at(2),
-//                                                    imSize.at(0), R[1], T[1], R[2], T[2],
-//                                                    R_[0], R_[1], R_[2], P_[0], P_[1], P_[2], Q, alpha,
-//                                                    imSize.at(0), 0, 0, CV_CALIB_ZERO_DISPARITY);
-//
-//                printf("%s << 3 Camera rectification complete.\n", __FUNCTION__);
-//            }
-//
-
-
-
-
-    // Depends on intrinsics / extrinsics
-    // objectPoints.push_back(row);
 
     return 0;
 }

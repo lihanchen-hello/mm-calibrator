@@ -14,13 +14,13 @@
 #include "calibration.hpp"
 
 
-
+const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
 #define DEFAULT_CAM_COUNT 1
 
-#define DEFAULT_FRAMES_TO_LOAD 10 // should be at least 1000
+#define DEFAULT_FRAMES_TO_LOAD 100 // should be at least 1000
 #define DEFAULT_PATTERNS_TO_KEEP 100
-#define DEFAULT_MAX_PATTERNS_PER_SET 5
+#define DEFAULT_MAX_PATTERNS_PER_SET 10
 
 #define DEFAULT_GRID_SIZE 10
 #define DEFAULT_GRID_X_DIM 10
@@ -34,7 +34,7 @@
 //                                      EXAMPLE INPUT
 // ==========================================================================================
 // Current debug:
-// -i /home/steve/calibration/data/chessboard-100/subset/ -e jpg -m 0 -g 30 -x 10 -y 6 -w -a 0.00 -d -o 4 -c -u -w -f -s -b 0 -q 80 -h 20 -j 5 -l 3 -t 2
+// -d /home/steve/calibration/data/mmcal-test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
 
 // ==============================
 // INCLUDES

@@ -49,6 +49,9 @@ using namespace std;
 // CONSTANTS
 // =============================================
 
+/// \brief      Very basic image cropping
+    void cropImage(Mat& image, Point tl, Point br);
+
 /// \brief 		Convert a vector from 'Point' format to 'Point2f' format
     void convertVectorToPoint2f(vector<Point>& input, vector<Point2f>& output);
     /// \brief      Convert a vector from 'Point2f' format to 'Point' format
