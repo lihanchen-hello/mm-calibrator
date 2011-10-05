@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
     bool wantsToDisplay = false;
     bool wantsToUndistort = false;
     bool wantsToWrite = false;
+    bool videoMode = false;
 
     // --------------------------------------------- PARSING
     printf("%s << Parsing arguments...\n", __FUNCTION__);
@@ -72,6 +73,9 @@ int main(int argc, char* argv[]) {
                     break;
                 case 'w':
                     wantsToWrite = true;
+                    break;
+                case 'v':
+                    videoMode = true;
                     break;
                 case 'h':
                     usage(argv[0]);
@@ -157,7 +161,7 @@ int main(int argc, char* argv[]) {
 
 			closedir(dirp);
 
-            printf("%s << inputList[%d] = %d\n", __FUNCTION__, nnn, inputList[nnn].size());
+            printf("%s << inputList[%d].size() = %d\n", __FUNCTION__, nnn, inputList[nnn].size());
 
 
 
@@ -264,7 +268,7 @@ int main(int argc, char* argv[]) {
 
             sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
 
-            printf("%s << filename = %s\n", __FUNCTION__, filename);
+            //printf("%s << filename = %s\n", __FUNCTION__, filename);
             inputMat[nnn] = imread(filename);
             allImages[nnn].push_back(inputMat[nnn]);
 
@@ -296,7 +300,7 @@ int main(int argc, char* argv[]) {
                     break;
             }
 
-            printf("%s << Pattern found? %d\n", __FUNCTION__, patternFound);
+            //printf("%s << Pattern found? %d\n", __FUNCTION__, patternFound);
 
             inputMat[nnn].copyTo(dispMat);
 
@@ -824,4 +828,5 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+
 }

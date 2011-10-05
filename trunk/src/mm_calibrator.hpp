@@ -2,17 +2,23 @@
  *  \brief	Header file for main calibration program.
  *
  * This program should enable easy and accurate camera calibration.
+ * Example (debug) input:
+ * -d /home/steve/calibration/data/mmcal-test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
  */
 
 #ifndef MM_CALIBRATOR_HPP
 #define MM_CALIBRATOR_HPP
 
+#include "calibration.hpp"
 #include "intrinsics.hpp"
 #include "extrinsics.hpp"
+
 #include "cv_utils.hpp"
 #include "im_proc.hpp"
-#include "calibration.hpp"
 
+#include <opencv2/opencv.hpp>
+
+#include <dirent.h>
 
 const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
@@ -28,43 +34,9 @@ const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
 #define DEFAULT_ALPHA 0.00
 
-
-
-// ==========================================================================================
-//                                      EXAMPLE INPUT
-// ==========================================================================================
-// Current debug:
-// -d /home/steve/calibration/data/mmcal-test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
-
-// ==============================
-// INCLUDES
-// ==============================
-// Standard
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-#include <fstream>
-#include <sys/stat.h>
-
-// OpenCV
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-#include <unistd.h>					// Linux
-#include <getopt.h>
-#include <sys/stat.h>				// Miscellaneous
-#include <dirent.h>
-
-// ==========================================================================================
-//                                       CONSTANTS
-// ==========================================================================================
 #define RANDOM_CONSTANT 1
 #define PARENT_DEBUG 1
 
-// =============================================
-// NAMESPACES
-// =============================================
 using namespace cv;
 using namespace std;
 
@@ -72,7 +44,7 @@ static void usage(const char *argv0)
 {
 	printf("Usage: %s [options]\n", argv0);
 	printf("Supported options:\n");
-	printf("-d, --directory                             Must contain folder/s of images.\n");
+	printf("-d, --directory                             Parent directory of calibration data.\n");
 	printf("-n, --number                                Number of cameras to calibrate.\n");
 	printf("-i, --intrinsics                            Option to calculate intrinsics.\n");
 	printf("-e, --extrinsics                            Option to calculate extrinsics.\n");
@@ -93,12 +65,10 @@ static void usage(const char *argv0)
                                                         [3] Enhanced MCM\n\
                                                         [4] Best of random trials\n\
                                                         [5] Exhaustive search\n");
+    printf("-v, --video                                 Input (and output) is video.\n");
     printf("-u, --undistort                             Undistort images.\n");
     printf("-w, --write                                 Write undistorted images.\n");
     printf("\nIf parameters are missing, defaults are used. However, if no parameters are provided, the user will be prompted.\n");
 }
 
 #endif
-
-
-
