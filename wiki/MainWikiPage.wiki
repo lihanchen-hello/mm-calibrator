@@ -2,14 +2,12 @@
 
 = Introduction =
 
-Hopefully this wiki will never need to be very big, but I'm a huge fan of good documentation so I do plan to develop it once my code actually goes up on the website.
+Hopefully this wiki will never need to be very big, but I'm a huge fan of good documentation so I plan to continue to develop it, especially once this research is published.
 
-= Details =
+= Links =
 
-The wiki will eventually include the following:
-
-  * Simple install guide (it should be extremely easy to install)
-  * Guide on how to use the system for calibration
-  * Link to calibration mask templates
-  * Link to calibration test data
-  * Discussion for future development
+  * [InstallGuide Installation Guide]
+  * [CalibrationGuide Calibration Guide]
+  * [MaskTemplates Mask Templates]
+  * [SampleData Sample Calibration Data]
+  * [FutureDevelopment Discussion of potential future development]
