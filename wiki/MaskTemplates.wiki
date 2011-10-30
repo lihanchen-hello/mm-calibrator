@@ -1,0 +1,9 @@
+#summary Provides mask templates file to assist in manufacturing.
+
+= Introduction =
+
+For our experiments, the mask was cut out using a laser cutter. This laser cutter accepted Corel drawings as input. If anyone has created a drawing that was used by another laser cutter, it would be appreciated if they could add it to this page in case other people want to use it.
+
+= Templates =
+
+  * Template1
