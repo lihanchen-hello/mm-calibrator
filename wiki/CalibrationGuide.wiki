@@ -1,0 +1,13 @@
+#summary Instructions for using the software for camera calibration.
+
+= Introduction =
+
+Although the package is capable of performing both intrinsic and extrinsic calibration using one set of input sequences, best results are generally achieved by doing intrinsic calibration first (separately), and then feeding the results into the extrinsic calibration algorithm.
+
+= Intrinsic Calibration =
+
+...
+
+= Extrinsic Calibration =
+
+...
