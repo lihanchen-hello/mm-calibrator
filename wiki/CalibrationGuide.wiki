@@ -6,8 +6,10 @@ Although the package is capable of performing both intrinsic and extrinsic calib
 
 = Intrinsic Calibration =
 
-...
+*Sample command:*
+./mm-calibrator -d ~/intrinsics_calib_folder -i -t 0 -x 12 -y 8 -s -u
 
 = Extrinsic Calibration =
 
-...
+*Sample command:*
+./mm-calibrator -d ~/extrinsics_calib_folder -3 -n 2 -t 1 -x 12 -y 8 -s -u
