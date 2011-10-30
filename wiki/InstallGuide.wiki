@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Guides for installing the program on different operating systems.
 
 = Introduction =
 
