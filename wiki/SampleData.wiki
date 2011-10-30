@@ -1,0 +1,10 @@
+#summary Provides some links to some sample data.
+
+= Introduction =
+
+The idea of this page is that it could be used to provide links to small calibration datasets, in case other people want to test out this (or another system) on different data to see how it performs.
+
+
+= Datasets =
+
+  * [http://dl.dropbox.com/u/28723659/miricle-307k-intrinsics.zip Thermal-infrared intrinsic footage]
