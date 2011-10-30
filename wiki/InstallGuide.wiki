@@ -1,0 +1,9 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+At the moment only install instructions exist for linux. Please see the [FutureDevelopment Future Development] page for details on future plans for porting the project to other platforms such as Windows and MacOS. 
+
+= Linux Installation =
+
+...
