@@ -1,4 +1,4 @@
-#summary Provides mask templates file to assist in manufacturing.
+#summary Provides mask template files to assist in manufacturing.
 
 = Introduction =
 
@@ -6,4 +6,5 @@ For our experiments, the mask was cut out using a laser cutter. This laser cutte
 
 = Templates =
 
-  * Template1
+  * [http://dl.dropbox.com/u/28723659/grid.pdf 4x6,20mm Mask (PDF)]
+  * [http://dl.dropbox.com/u/28723659/thermalMask.cdr 4x6,20mm Mask (CDR)]
