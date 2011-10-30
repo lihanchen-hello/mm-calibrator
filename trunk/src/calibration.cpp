@@ -1819,13 +1819,25 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
                 int z[4], c[4];
 
                 if (i == 0) {               // For top edge
-                    c = {index+2*X-1, index+2*X+1, index+4*X-1, index+4*X+1};
+                    	c[0] = index+2*X-1;
+			c[1] = index+2*X+1;
+			c[2] = index+4*X-1;
+			c[3] = index+4*X+1;
                 } else if (i == 2*Y-1) {    // For bottom edge
-                    c = {index-4*X-1, index-4*X+1, index-2*X-1, index-2*X+1};
+                    	c[0] = index-4*X-1;
+			c[1] = index-4*X+1;
+			c[2] = index-2*X-1;
+			c[3] = index-2*X+1;
                 } else if (j == 0) {        // For left edge
-                    c = {index-2*X+1, index-2*X+2, index+2*X+1, index+2*X+2};
+                    	c[0] = index-2*X+1;
+			c[1] = index-2*X+2;
+			c[2] = index+2*X+1;
+			c[3] = index+2*X+2;
                 } else if (j == 2*X-1) {    // For right edge
-                    c = {index-2*X-2, index-2*X-1, index+2*X-2, index+2*X-1};
+                    	c[0] = index-2*X-2;
+			c[1] = index-2*X-1;
+			c[2] = index+2*X-2;
+			c[3] = index+2*X-1;
                 }
 
                 int m, n;
@@ -1934,21 +1946,45 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
 
                 if ((i == 0) && (j == 1)) {                                 // top left (top)
-                    c = {index+1, index+2*X, index+2*X+2, index+4*X+1};     // c = {index+1, index+2*X, index+2*X+2, index+4*X+2};
+                    	c[0] = index+1;
+			c[1] = index+2*X;
+			c[2] = index+2*X+2;
+			c[3] = index+4*X+1;     // c = {index+1, index+2*X, index+2*X+2, index+4*X+2};
                 } else if ((i == 1) && (j == 0)) {                          // top left (bot)
-                    c = {index+1, index+2*X, index+2*X+2, index+4*X+1};
+                    	c[0] = index+1;
+			c[1] = index+2*X;
+			c[2] = index+2*X+2;
+			c[3] = index+4*X+1;
                 } else if ((i == 0) && (j == 2*X-2)) {                      // top right (top)
-                    c = {index-1, index+2*X-2, index+2*X, index+4*X-1};
+                    	c[0] = index-1;
+			c[1] = index+2*X-2;
+			c[2] = index+2*X;
+			c[3] = index+4*X-1;
                 } else if ((i == 1) && (j == 2*X-1)) {                      // top right (bot)
-                    c = {index-1, index+2*X-2, index+2*X, index+4*X-1};     // c = {index-1, index+2*X-2, index+2*X-1, index+4*X-2};
+                    	c[0] = index-1;
+			c[1] = index+2*X-2;
+			c[2] = index+2*X;
+			c[3] = index+4*X-1;     // c = {index-1, index+2*X-2, index+2*X-1, index+4*X-2};
                 } else if ((i == 2*Y-2) && (j == 0)) {                      // bottom left (top)
-                    c = {index-4*X+1, index-2*X, index-2*X+2, index+1};
+                    	c[0] = index-4*X+1;
+			c[1] = index-2*X;
+			c[2] = index-2*X+2;
+			c[3] = index+1;
                 } else if ((i == 2*Y-1) && (j == 1)) {                      // bot left (bot)
-                    c = {index-4*X+1, index-2*X, index-2*X+2, index+1};     // c = {index-4*X+1, index-4*X+2, index-2*X, index-2*X+1};
+                    	c[0] = index-4*X+1;
+			c[1] = index-2*X;
+			c[2] = index-2*X+2;
+			c[3] = index+1;     // c = {index-4*X+1, index-4*X+2, index-2*X, index-2*X+1};
                 } else if ((i == 2*Y-2) && (j == 2*X-1)) {                  // bottom right (top)
-                    c = {index-4*X-1, index-2*X-2, index-2*X, index-1};
+                    	c[0] = index-4*X-1;
+			c[1] = index-2*X-2;
+			c[2] = index-2*X;
+			c[3] = index-1;
                 } else if ((i == 2*Y-1) && (j == 2*X-2)) {                  // bot right (bot)
-                    c = {index-4*X-1, index-2*X-2, index-2*X, index-1};     // c = {index-4*X-2, index-4*X-1, index-2*X-1, index-2*X};
+                    	c[0] = index-4*X-1;
+			c[1] = index-2*X-2;
+			c[2] = index-2*X;
+			c[3] = index-1;     // c = {index-4*X-2, index-4*X-1, index-2*X-1, index-2*X};
                 }
 
 
@@ -2060,13 +2096,25 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
 
                 if ((i == 0) && (j == 0)) {                                 // top left
-                    c = {index+1, index+2*X, index+2*X+2, index+4*X+1};
+                    	c[0] = index+1;
+			c[1] = index+2*X;
+			c[2] = index+2*X+2;
+			c[3] = index+4*X+1;
                 } else if ((i == 0) && (j == 2*X-1)) {                      // top right
-                    c = {index-1, index+2*X-2, index+2*X, index+4*X-1};
+                    	c[0] = index-1;
+			c[1] =index+2*X-2;
+			c[2] = index+2*X;
+			c[3] = index+4*X-1;
                 } else if ((i == 2*Y-1) && (j == 0)) {                      // bot left
-                    c = {index-4*X+1, index-2*X, index-2*X+2, index+1};
+                    	c[0] = index-4*X+1;
+			c[1] = index-2*X;
+			c[2] = index-2*X+2;
+			c[3] = index+1;
                 } else if ((i == 2*Y-1) && (j == 2*X-1)) {                  // bot right
-                    c = {index-4*X-1, index-2*X-2, index-2*X, index-1};
+                    	c[0] = index-4*X-1;
+			c[1] = index-2*X-2;
+			c[2] = index-2*X;
+			c[3] = index-1;
                 }
 
 
@@ -2651,7 +2699,7 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
     double alpha = 0.5;
 
     Rect validROI;
-    newCamMat = getOptimalNewCameraMatrix(cameraMatrix, di================================mage.size(), &validROI);
+    newCamMat = getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, image.size(), alpha, image.size(), &validROI);
 
     Mat undistortedImage;
     undistort(image, undistortedImage, cameraMatrix, distCoeffs, newCamMat);
