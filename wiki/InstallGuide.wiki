@@ -4,6 +4,10 @@
 
 At the moment only install instructions exist for linux. Please see the [FutureDevelopment Future Development] page for details on future plans for porting the project to other platforms such as Windows and MacOS. 
 
+To compile the project on your computer, you must have [http://opencv.willowgarage.com/wiki/ OpenCV] installed and also the [http://www.boost.org/ Boost] libraries.
+
 = Linux Installation =
 
-...
+  # Go to the [http://code.google.com/p/mm-calibrator/source/checkout Source] tab and check-out the source code.
+  # Navigate into the new directory entitled either "mm-calibrator" or "mm-calibrator-read-only" using the Terminal
+  # Open the file README and follow the installation instructions.
