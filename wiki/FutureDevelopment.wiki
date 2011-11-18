@@ -8,15 +8,16 @@ Some (but not all) of these directions for future development I intend to pursue
 = Future Software Development =
 
   * Live capture mode
-  * Port project to Windows
   * Port project to MacOS
-  * Integrate with a [http://www.ros.org/wiki/ ROS] package (e.g perhaps [http://www.ros.org/wiki/camera_calibration this] one?)
+  * Port project to Windows
+  * Integrate with a [http://www.ros.org/wiki/ ROS] package 
+    * E.g perhaps [http://www.ros.org/wiki/camera_calibration this] one? At present it seems to only support the standard pattern, and also the process of calibration is very slow, which I suspect is because they use the entire calibration sequence rather than a near-optimal subset. In fact there seems to be discussion about integrating [http://answers.ros.org/question/1713/opencv-circles-grid-calibration another pattern finding algorithm] into the package.
 
 = Future Algorithm Development =
   * Improve Shape filter (use the ratio of principal axis lengths of an elliptic fit)
   * Local acutance-based point rejection
   * Region-weighted projection error
-  * Add 3< camera calibration support
+  * Add 3+ camera calibration support
   * Wide-baseline camera setup support (including absolute referencing)
   * Add new distortion models for different types of cameras
   * Automatically estimate pattern dimensions
