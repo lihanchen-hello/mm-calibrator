@@ -3,7 +3,7 @@
  *
  * This program should enable easy and accurate camera calibration.
  * Example (debug) input:
- * -d /home/steve/calibration/data/mmcal-test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
+ * -d /home/steve/calibration/data/mmcal_test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
  */
 
 #ifndef MM_CALIBRATOR_HPP
@@ -19,6 +19,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <dirent.h>
+#include <stdio.h>
 
 const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
@@ -44,7 +45,7 @@ static void usage(const char *argv0)
 {
 	printf("Usage: %s [options]\n", argv0);
 	printf("Supported options:\n");
-	printf("-d, --directory                             Parent directory of calibration data.\n");
+	printf("-d, --directory                             Parent directory or video address.\n");
 	printf("-n, --number                                Number of cameras to calibrate.\n");
 	printf("-i, --intrinsics                            Option to calculate intrinsics.\n");
 	printf("-e, --extrinsics                            Option to calculate extrinsics.\n");
@@ -65,7 +66,7 @@ static void usage(const char *argv0)
                                                         [3] Enhanced MCM\n\
                                                         [4] Best of random trials\n\
                                                         [5] Exhaustive search\n");
-    printf("-v, --video                                 Input (and output) is video.\n");
+    printf("-q, --video                                 Input (and output) is video.\n");
     printf("-u, --undistort                             Undistort images.\n");
     printf("-w, --write                                 Write undistorted images.\n");
     printf("\nIf parameters are missing, defaults are used. However, if no parameters are provided, the user will be prompted.\n");

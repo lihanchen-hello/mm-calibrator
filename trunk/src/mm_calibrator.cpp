@@ -18,7 +18,9 @@ int main(int argc, char* argv[]) {
     bool wantsToDisplay = false;
     bool wantsToUndistort = false;
     bool wantsToWrite = false;
-    bool videoMode = false;
+
+    // Currently only contains support for input being in the form of a folder (and maybe AVI video)
+    bool inputIsFolder = true;
 
     // --------------------------------------------- PARSING
     printf("%s << Parsing arguments...\n", __FUNCTION__);
@@ -29,7 +31,7 @@ int main(int argc, char* argv[]) {
     if (argc == 1) {
         printf("%s << User should be prompted for parameters...\n", __FUNCTION__);
     } else {
-        while ((c = getopt(argc, argv, "d:n:iet:a:b:g:x:y:so:uh")) != -1) {
+        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uh")) != -1) {
 
             switch (c) {
                 case 'd':
@@ -74,8 +76,8 @@ int main(int argc, char* argv[]) {
                 case 'w':
                     wantsToWrite = true;
                     break;
-                case 'v':
-                    videoMode = true;
+                case 'q':
+                    inputIsFolder = false;
                     break;
                 case 'h':
                     usage(argv[0]);
@@ -96,6 +98,13 @@ int main(int argc, char* argv[]) {
     maxPatternsPerSet = min(maxPatternsPerSet, maxPatternsToKeep);
 
     printf("%s << Parent directory is: %s\n", __FUNCTION__, directory);
+
+    if (!inputIsFolder) {
+        printf("%s << Input in video format.\n", __FUNCTION__);
+    } else {
+        printf("%s << Input in image format.\n", __FUNCTION__);
+    }
+
     printf("%s << Number of cameras to calibrate: %d\n", __FUNCTION__, numCams);
     printf("%s << Calculating intrinsics? %d\n", __FUNCTION__, wantsIntrinsics);
     printf("%s << Calculating extrinsics? %d\n", __FUNCTION__, wantsExtrinsics);
@@ -107,9 +116,6 @@ int main(int argc, char* argv[]) {
     printf("%s << Wants to undistort? %d\n", __FUNCTION__, wantsToUndistort);
     printf("%s << Wants to write? %d\n", __FUNCTION__, wantsToWrite);
 
-    // Currently only contains support for input being in the form of a folder
-    bool inputIsFolder = true;
-
     char *inStream[MAX_CAMS];
     char *outStream[MAX_CAMS];
     char *intrinsicParams[MAX_CAMS];
@@ -117,6 +123,9 @@ int main(int argc, char* argv[]) {
 
     DIR * dirp;
     struct dirent * entry;
+
+    VideoCapture cap[MAX_CAMS];
+    int videoFrameCount[MAX_CAMS];
 
     vector<string> inputList[MAX_CAMS], culledList;
 
@@ -137,6 +146,9 @@ int main(int argc, char* argv[]) {
 
         printf("%s << intrinsicParams[%d] = %s\n", __FUNCTION__, nnn, intrinsicParams[nnn]);
     }
+
+    int * randomIndexArray;
+    randomIndexArray = new int[maxFramesToLoad];
 
     if (inputIsFolder) {
 
@@ -187,6 +199,63 @@ int main(int argc, char* argv[]) {
             printf("%s << Frame count mismatch.\n", __FUNCTION__);
             return -1;
         }
+    } else {
+        // Input is a video!!
+
+        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+
+            sprintf(inStream[nnn], "%s/%d.avi", directory, nnn);
+
+            printf("%s << inStream[%d] = %s\n", __FUNCTION__, nnn, inStream[nnn]);
+
+            sprintf(outStream[nnn], "%s/%d.avi", directory, nnn);
+
+
+            cap[nnn].open(inStream[nnn]);
+
+            if(!cap[nnn].isOpened()) {
+                printf("%s << Failed to open capture device...\n", __FUNCTION__);
+                return -1;
+            } else {
+                printf("%s << Successfully opened capture device!\n", __FUNCTION__);
+            }
+
+            printf("%s << Counting frames...\n", __FUNCTION__);
+
+            double frameCountDbl = 0.0;
+
+            Mat frame;
+            cap[nnn] >> frame;
+            frameCountDbl = cap[nnn].get(CV_CAP_PROP_FRAME_COUNT);
+
+            videoFrameCount[nnn] = (int) frameCountDbl;
+
+            printf("%s << Estimated frame count = %d\n", __FUNCTION__, videoFrameCount[nnn]);
+
+            cap[nnn].release();
+
+        }
+
+        for (int nnn = 0; nnn < numCams-1; nnn++) {
+            if (videoFrameCount[nnn] != videoFrameCount[nnn+1]) {
+                sameNum = false;
+            }
+        }
+
+        if (sameNum) {
+            maxFramesToLoad = std::min(videoFrameCount[0], (int)maxFramesToLoad);
+            printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
+
+            // Need to determine some kind of random sequence so that the correct number of frames are extracted...
+            // Can store this in an array and have a check when actual frames are extracted..
+
+            generateRandomIndexArray(randomIndexArray, maxFramesToLoad, videoFrameCount[0]);
+
+        } else {
+            printf("%s << Frame count mismatch.\n", __FUNCTION__);
+            return -1;
+        }
+
     }
 
     FileStorage fs;
@@ -255,21 +324,44 @@ int main(int argc, char* argv[]) {
 
 
 
-	int index = 0;
+	int index = 0, frameIndex = 0;
     // --------------------------------------------- THE PATTERN SEARCH
 
     // Run through each camera separately to find the patterns
     for (unsigned int nnn = 0; nnn < numCams; nnn++) {
 
         index = 0;
+        frameIndex = 0;
+
+        int numFramesToCapture = 0;
+
+        if (inputIsFolder) {
+            numFramesToCapture = min((int)culledList.size(), maxFramesToLoad);
+        } else {
+            numFramesToCapture = maxFramesToLoad;
+            cap[nnn].open(inStream[nnn]);
+        }
+
+
 
         // For each frame for each camera
-        while (index < min((int)culledList.size(), maxFramesToLoad)) {
+        while (index < numFramesToCapture) {
 
-            sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
+
+            if (inputIsFolder) {
+                sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
+                inputMat[nnn] = imread(filename);
+            } else {
+                while (frameIndex <= randomIndexArray[index]) {
+                    cap[nnn] >> inputMat[nnn];
+                    frameIndex++;
+                }
+
+
+            }
 
             //printf("%s << filename = %s\n", __FUNCTION__, filename);
-            inputMat[nnn] = imread(filename);
+
             allImages[nnn].push_back(inputMat[nnn]);
 
             /*
@@ -316,6 +408,10 @@ int main(int argc, char* argv[]) {
             foundRecord[nnn].push_back(patternFound);
             cornersList[nnn].push_back(cornerSet);
 
+        }
+
+        if (!inputIsFolder)  {
+            cap[nnn].release();
         }
 
     }

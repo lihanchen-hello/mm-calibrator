@@ -1,5 +1,30 @@
 #include "calibration.hpp"
 
+
+void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal) {
+
+    srand ( (unsigned int)(time(NULL)) );
+
+    vector<int> validValuesVector, randomSelection;
+
+    for (int iii = 0; iii < maxVal; iii++) {
+        validValuesVector.push_back(iii);
+    }
+
+    for (int iii = 0; iii < maxElements; iii++) {
+        int currIndex = rand() % validValuesVector.size();
+
+        randomSelection.push_back(validValuesVector.at(currIndex));
+        validValuesVector.erase(validValuesVector.begin() + currIndex);
+    }
+
+    sort(randomSelection.begin(), randomSelection.end());
+
+    for (int iii = 0; iii < randomSelection.size(); iii++) {
+        randomArray[iii] = randomSelection.at(iii);
+    }
+}
+
 mserPatch::mserPatch() {
 
 }

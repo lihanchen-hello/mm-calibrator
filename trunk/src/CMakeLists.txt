@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+
 PROJECT( ../bin/mm_calibrator )
 
 FIND_PACKAGE( OpenCV REQUIRED )

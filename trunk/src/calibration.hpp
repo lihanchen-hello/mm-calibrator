@@ -21,6 +21,7 @@
 #include "opencv2/highgui/highgui.hpp"
 
 #include <sys/stat.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 // NOTHING YET
@@ -95,6 +96,9 @@ public:
     /// \brief 		Constructor from a point vector and a pointer to the matrix (for intensities).
     mserPatch(vector<Point>& inputHull, const Mat& image);
 };
+
+/// \brief      Generates a random set of indices from a valid range
+void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal);
 
 /// \brief      Blurs and enhances a distribution map to make it more displayable
 void prepForDisplay(const Mat& distributionMap, Mat& distributionDisplay);
