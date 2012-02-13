@@ -1,6 +1,5 @@
 #include "calibration.hpp"
 
-
 void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal) {
 
     srand ( (unsigned int)(time(NULL)) );
@@ -135,6 +134,9 @@ void determinePatchDistribution(Size patternSize, int mode, int &rows, int &cols
 }
 
 void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers) {
+
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 0);
+
     int64 t = getTickCount();
 
     int imWidth = image.size().width;
@@ -149,6 +151,8 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     Mat displayMat(image);
     Mat mask = Mat::ones(image.rows, image.cols, CV_8U);
 
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 1);
+
     // 15
     MSER mserExtractor(7.5, minArea, maxArea, 0.25, 0.2, 200, 1.01, 0.003, 5); // delta = 8, max var = 0.1
     /*
@@ -158,6 +162,8 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
 		"    double min_margin = .003, \n"
 		"    int edge_blur_size = 5)
     */
+
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 2);
 
     // Copy image but into greyscale
     Mat imGrey;
@@ -173,6 +179,10 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     //printf("%s << kernelSize = %d\n", __FUNCTION__, kernelSize);
     GaussianBlur(imGrey, imGrey, Size(kernelSize,kernelSize), 0,0);
 
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 3);
+
+    //printf("%s << imGrey.size() = (%d,%d)\n", __FUNCTION__, imGrey.rows, imGrey.cols);
+
     //imshow("blurred", imGrey);
     //waitKey(0);
 
@@ -184,10 +194,14 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     // Extract MSER features
     mserExtractor(imGrey, msers, mask);
 
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 4);
+
     // Clean up MSER features by putting them in a convex hull
     for (unsigned int i = 0; i < msers.size(); i++) {
         convexHull(Mat(msers[i]), msers[i]);
     }
+
+    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 5);
 
     if (DEBUG_MODE > 1) {
         printf("%s << MSERs found: %d\n", __FUNCTION__, msers.size());
@@ -1148,6 +1162,8 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
         return false;
     }
 
+
+
     vector<Point2f> patchCentres2f;
     bool found = refinePatches(image, patternSize, msers, patchCentres2f, mode);
 
@@ -1160,6 +1176,8 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
         debugDisplayPatches(image, msers);
     }
 
+
+
     // If patches still not found...
     if (!found) {
         corners.clear();
@@ -1170,6 +1188,7 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
 
         return false;
     }
+
 
     found = patternInFrame(image.size(), patchCentres2f);
 
@@ -2292,9 +2311,11 @@ int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst
 	Mat inputDisp;
 
 #ifdef _WIN32
+    /*
 	qacdtl::group_array<double> corners;
 	vil_image_view<vxl_byte> vByteImage(imGrey.cols, imGrey.rows);
 	vil_image_view<double> vDblImage(imGrey.cols, imGrey.rows);
+    */
 #endif
 
 	//printf("%s << Entered function.\n", __FUNCTION__);
@@ -2325,7 +2346,7 @@ int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst
         case 2:     //        BIPOLAR HESSIAN DETECTOR
                     // ==================================================
 #ifdef _WIN32
-
+            /*
 			// Copy from cv::Mat to vil_image view
 			imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
 
@@ -2351,9 +2372,10 @@ int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst
 			}
 
 			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
-
+            */
 			// That's it!
             break;
+
 #endif
 
 #ifndef _WIN32
@@ -2407,7 +2429,7 @@ int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst
             maxDist = 0.5;	// reduce searchDist for using bipolar hessian to refine the cornerSubPix() values slightly, but not radically..
 
 #ifdef _WIN32
-
+            /*
 			// Copy from cv::Mat to vil_image view
 			imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
 
@@ -2433,9 +2455,10 @@ int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst
 			}
 
 			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
-
+            */
 			// That's it!
             break;
+
 #endif
 
 #ifndef _WIN32

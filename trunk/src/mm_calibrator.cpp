@@ -23,14 +23,18 @@ int main(int argc, char* argv[]) {
     bool inputIsFolder = true;
 
     // --------------------------------------------- PARSING
-    printf("%s << Parsing arguments...\n", __FUNCTION__);
+    //printf("%s << Parsing arguments...\n", __FUNCTION__);
 
     opterr = 0;
     int c;
 
+    printf("%s << Parsing arguments...\n", __FUNCTION__);
+
     if (argc == 1) {
         printf("%s << User should be prompted for parameters...\n", __FUNCTION__);
     } else {
+
+
         while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uh")) != -1) {
 
             switch (c) {
@@ -90,11 +94,14 @@ int main(int argc, char* argv[]) {
             }
 
         }
+
     }
+
 
     int maxFramesToLoad = DEFAULT_FRAMES_TO_LOAD;   // DANGER!! THIS HAS BEEN SET LOW FOR TESTING / DEVELOPMENT
 
     maxPatternsToKeep = min(maxPatternsToKeep, maxFramesToLoad);
+
     maxPatternsPerSet = min(maxPatternsPerSet, maxPatternsToKeep);
 
     printf("%s << Parent directory is: %s\n", __FUNCTION__, directory);
@@ -154,24 +161,104 @@ int main(int argc, char* argv[]) {
 
         for (unsigned int nnn = 0; nnn < numCams; nnn++) {
 
-            sprintf(inStream[nnn], "%s/%d/", directory, nnn);
+            #if defined(WIN32)
+                UINT counter(0);
+                bool working(true);
+                string buffer;
+                string fileName[1000];
+
+                WIN32_FIND_DATA myimage;
+                HANDLE myHandle;
+
+                sprintf(inStream[nnn], "%s\\%d\\", directory, nnn);
+                sprintf(outStream[nnn], "%s\\%d-r\\", directory, nnn);
+            #else
+                sprintf(inStream[nnn], "%s/%d/", directory, nnn);
+                sprintf(outStream[nnn], "%s/%d-r/", directory, nnn);
+            #endif
+
+
 
             printf("%s << inStream[%d] = %s\n", __FUNCTION__, nnn, inStream[nnn]);
 
-            sprintf(outStream[nnn], "%s/%d-r/", directory, nnn);
 
-            dirp = opendir(inStream[nnn]);
 
-			while ((entry = readdir(dirp)) != NULL) {
-				//printf("DEBUG C.\n");
-				if (entry->d_type == DT_REG) { // If the entry is a regular file
 
-				    inputList[nnn].push_back(string(entry->d_name));
 
-				}
-			}
+            #if defined(WIN32)
 
-			closedir(dirp);
+                //printf("%s << DEBUG /%d/%d/\n", __FUNCTION__, 0, -2);
+
+                counter = 0;
+
+                char * imageSearcher;
+
+                imageSearcher = (char*) malloc(strlen(directory) + 128);
+
+
+                sprintf(imageSearcher, "%s/*", inStream[nnn]);
+
+                myHandle=FindFirstFile(imageSearcher,&myimage);
+
+                if(myHandle!=INVALID_HANDLE_VALUE) {
+
+                    buffer=myimage.cFileName;
+
+                    if (buffer.length() > 4) {
+                            inputList[nnn].push_back(buffer);
+                    }
+
+
+                    while(working) {
+                        FindNextFile(myHandle,&myimage);
+                        if(myimage.cFileName!=buffer) {
+                             buffer=myimage.cFileName;
+
+                             //printf("%s << %s (%c)\n", __FUNCTION__, buffer.c_str(), buffer.at(buffer.length()-1));
+                             //cin.get();
+
+                                if (buffer.length() > 4) {
+                             //if ((buffer != "..") && (buffer != ".")) {
+                                ++counter;
+                                 inputList[nnn].push_back(buffer);
+                                 // printf("%s << Files counted: %d (%s)\n", __FUNCTION__, counter, buffer.c_str());
+                                 // printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, counter-1, (inputList[nnn].at(counter-1)).c_str());
+                             }
+
+                        }
+                        else
+                        {
+                              //end of files reached
+                              working=false;
+                        }
+
+                    }
+
+                    sort(inputList[nnn].begin(), inputList[nnn].end());
+
+                    for (int qrw = 0; qrw < inputList[nnn].size(); qrw++) {
+                        //printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, qrw, (inputList[nnn].at(qrw).c_str()));
+                    }
+
+                }
+
+            #else
+                dirp = opendir(inStream[nnn]);
+
+                while ((entry = readdir(dirp)) != NULL) {
+                    //printf("DEBUG C.\n");
+                    if (entry->d_type == DT_REG) { // If the entry is a regular file
+
+                        inputList[nnn].push_back(string(entry->d_name));
+
+                    }
+                }
+
+                closedir(dirp);
+            #endif
+
+
+
 
             printf("%s << inputList[%d].size() = %d\n", __FUNCTION__, nnn, inputList[nnn].size());
 
@@ -189,11 +276,17 @@ int main(int argc, char* argv[]) {
             maxFramesToLoad = std::min((int)inputList[0].size(), (int)maxFramesToLoad);
             printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
 
-            culledList = inputList[0];
+            //culledList.assign(inputList[0].begin(), inputList[0].end());
+
+            culledList.swap(inputList[0]);
 
             randomCulling(culledList, maxFramesToLoad);
 
             sort(culledList.begin(), culledList.end());
+
+            for (int qrw = 0; qrw < culledList.size(); qrw++) {
+                printf("%s << culledList.at(%d) = %s\n", __FUNCTION__, qrw, (culledList.at(qrw).c_str()));
+            }
 
         } else {
             printf("%s << Frame count mismatch.\n", __FUNCTION__);
@@ -258,6 +351,8 @@ int main(int argc, char* argv[]) {
 
     }
 
+    printf("%s << Q: %d / %d \n", __FUNCTION__, inputList[0].size(), culledList.size());
+
     FileStorage fs;
 
     Mat imageSize_mat[MAX_CAMS], cameraMatrix[MAX_CAMS], newCamMat[MAX_CAMS], distCoeffs[MAX_CAMS], rectCamMat[MAX_CAMS];
@@ -291,10 +386,24 @@ int main(int argc, char* argv[]) {
             cout << cameraMatrix[nnn] << endl;
 
             printf("%s << distCoeffs[%d] = ", __FUNCTION__, nnn);
+
             cout << distCoeffs[nnn] << endl;
 
             newCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], imageSize_size[nnn], alpha, imageSize_size[nnn], &validROI[nnn]);
+
+            //printf("%s << validROI[%d] = (%d, %d) / (%d, %d)\n", __FUNCTION__, nnn, validROI[nnn].x, validROI[nnn].y, validROI[nnn].width, validROI[nnn].y);
+
+
+
+            printf("%s << newCamMat[%d] = ", __FUNCTION__, nnn);
+
+
+
+            cout << newCamMat[nnn] << endl;
+
             rectCamMat[nnn] = getOptimalNewCameraMatrix(cameraMatrix[nnn], distCoeffs[nnn], imageSize_size[nnn], 0.5, imageSize_size[nnn], &validROI[nnn]);
+
+            //printf("%s << validROI[%d] = (%d, %d) / (%d, %d)\n", __FUNCTION__, nnn, validROI[nnn].x, validROI[nnn].y, validROI[nnn].width, validROI[nnn].y);
         }
     }
 
@@ -322,8 +431,6 @@ int main(int argc, char* argv[]) {
 
     vector<bool> foundRecord[MAX_CAMS];
 
-
-
 	int index = 0, frameIndex = 0;
     // --------------------------------------------- THE PATTERN SEARCH
 
@@ -349,8 +456,15 @@ int main(int argc, char* argv[]) {
 
 
             if (inputIsFolder) {
+                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 3);
+                printf("%s << inStream[nnn] = %s\n", __FUNCTION__, inStream[nnn]);
+                //printf("%s << CL = %s\n", __FUNCTION__, (culledList.at(index)).c_str());
+
                 sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
+                //printf("%s << filename = %s\n", __FUNCTION__, filename);
+                //cin.get();
                 inputMat[nnn] = imread(filename);
+                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 4);
             } else {
                 while (frameIndex <= randomIndexArray[index]) {
                     cap[nnn] >> inputMat[nnn];
@@ -363,6 +477,13 @@ int main(int argc, char* argv[]) {
             //printf("%s << filename = %s\n", __FUNCTION__, filename);
 
             allImages[nnn].push_back(inputMat[nnn]);
+
+            //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 5);
+
+            //printf("%s << inputMat[nnn].size() = (%d, %d)\n", __FUNCTION__, inputMat[nnn].cols, inputMat[nnn].rows);
+
+            //imshow("displayWindow", inputMat[nnn]);
+            //waitKey(0);
 
             /*
             if (wantsToDisplay) {
@@ -380,6 +501,7 @@ int main(int argc, char* argv[]) {
                     patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
                     break;
                 case MASK_FINDER_CODE:
+                    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 1, 6);
                     patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
                     break;
                 case HEATED_CHESSBOARD_FINDER_CODE:
@@ -537,7 +659,15 @@ int main(int argc, char* argv[]) {
                 char newDirectoryPath[256];
 
                 sprintf(newDirectoryPath, "%s/%d-u", directory, nnn);
-                mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+
+                #if defined(WIN32)
+                    //boost::filesystem::create_directory(newDirectoryPath);
+
+                    CreateDirectory(newDirectoryPath, NULL);
+                #else
+                    mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+                #endif
+
 
                 printf("%s << Undistorting Images...\n", __FUNCTION__);
                 Mat undistortedMat(inputMat[nnn].size(), CV_8UC3);
@@ -668,7 +798,11 @@ int main(int argc, char* argv[]) {
                         R[k+1], T[k+1], E[k+1], F[k+1],
                         term_crit,
                         EXTRINSICS_FLAGS); //
+
+
             }
+
+            cout << "T[" << nnn << "] = " << endl << T[nnn] << endl;
         }
 
         double extendedExtrinsicReprojectionError;
@@ -794,10 +928,6 @@ int main(int argc, char* argv[]) {
 
             for (int i = 0; i < numCams; i++) {
 
-                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 0);
-
-
-
                 initUndistortRectifyMap(cameraMatrix[i],
                                     distCoeffs[i],
                                     R_[i],
@@ -807,19 +937,17 @@ int main(int argc, char* argv[]) {
                                     mapx[i],    // map1[i]
                                     mapy[i]);   // map2[i]
 
-                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 1);
-
                 pt1 = Point(validROI[i].x, validROI[i].y);
                 pt2 = Point(validROI[i].x + validROI[i].width, validROI[i].y + validROI[i].height);
+
+                printf("%s << (und) pt1 = (%d, %d); pt2 = (%d, %d)\n", __FUNCTION__, pt1.x, pt1.y, pt2.x, pt2.y);
 
                 rectangleBounds.push_back(Point2f(pt1.x, pt1.y));
                 rectangleBounds.push_back(Point2f(pt2.x, pt2.y));
 
-                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 2);
+                cout << "rectCamMat[i] = " << endl << rectCamMat[i] << endl;
 
                 undistortPoints(Mat(rectangleBounds), newRecBounds, rectCamMat[i], blankCoeffs, R_[i], P_[i]);
-
-                printf("%s << DEBUG %d,%d\n", __FUNCTION__, i, 3);
 
                 //printf("%s << Original rectangle points: = (%d, %d) & (%d, %d)\n", __FUNCTION__, pt1.x, pt1.y, pt2.x, pt2.y);
 
@@ -858,7 +986,14 @@ int main(int argc, char* argv[]) {
 
                     char newDirectoryPath[256];
                     sprintf(newDirectoryPath, "%s/%d-r", directory, i);
-                    mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+
+                    #if defined(WIN32)
+                        CreateDirectory(newDirectoryPath, NULL);
+                    #else
+                        mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+                    #endif
+
+
 
                     sprintf(filename, "%s%s", inStream[i], (inputList[i].at(index)).c_str());
 

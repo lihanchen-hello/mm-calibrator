@@ -3,8 +3,18 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT( ../bin/mm_calibrator )
 
 FIND_PACKAGE( OpenCV REQUIRED )
-#FIND_PACKAGE( Boost REQUIRED )
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+
+IF(WIN32)
+SET(_boost_LIBRARIES_SEARCH_DIRS
+     C:/boost/lib
+     C:/boost
+	)
+
+	FIND_PACKAGE( Boost REQUIRED )
+
+ELSE()
+	FIND_PACKAGE(Boost COMPONENTS system filesystem REQUIRED)
+ENDIF()
 
 ADD_EXECUTABLE( ${PROJECT_NAME} 
 	mm_calibrator.cpp 	mm_calibrator.hpp
@@ -13,6 +23,8 @@ ADD_EXECUTABLE( ${PROJECT_NAME}
 	calibration.cpp		calibration.hpp
 	intrinsics.cpp		intrinsics.hpp
 	extrinsics.cpp		extrinsics.hpp
+
+	XGetopt.cpp		XGetopt.h
 )
 
 TARGET_LINK_LIBRARIES( 

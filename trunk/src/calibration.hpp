@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 #ifdef _WIN32
-// NOTHING YET
+    #include <ctime>
 #endif
 
 #define CHESSBOARD_FINDER_CODE          0

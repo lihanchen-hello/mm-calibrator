@@ -3,7 +3,8 @@
  *
  * This program should enable easy and accurate camera calibration.
  * Example (debug) input:
- * -d /home/steve/calibration/data/mmcal_test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
+ * LINUX: -d /home/steve/calibration/data/mmcal_test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
+ * WINDOWS: -d C:\Users\Steve\Data\calibration\mmcal_test -i -e -n 3 -t 1 -x 12 -y 8 -s -u
  */
 
 #ifndef MM_CALIBRATOR_HPP
@@ -21,12 +22,18 @@
 #include <dirent.h>
 #include <stdio.h>
 
-const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+#if defined(WIN32)
+    #include "XGetopt.h"
+    #include <windows.h>
+#else
+    const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+#endif
+
 
 #define DEFAULT_CAM_COUNT 1
 
-#define DEFAULT_FRAMES_TO_LOAD 100 // should be at least 1000
-#define DEFAULT_PATTERNS_TO_KEEP 100
+#define DEFAULT_FRAMES_TO_LOAD 20 // should be at least 1000
+#define DEFAULT_PATTERNS_TO_KEEP 20
 #define DEFAULT_MAX_PATTERNS_PER_SET 10
 
 #define DEFAULT_GRID_SIZE 10
