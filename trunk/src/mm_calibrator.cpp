@@ -1,6 +1,7 @@
 #include "mm_calibrator.hpp"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
     // Undistortion Parameters
     double alpha = DEFAULT_ALPHA;
@@ -30,67 +31,72 @@ int main(int argc, char* argv[]) {
 
     printf("%s << Parsing arguments...\n", __FUNCTION__);
 
-    if (argc == 1) {
+    if (argc == 1)
+    {
         printf("%s << User should be prompted for parameters...\n", __FUNCTION__);
-    } else {
+    }
+    else
+    {
 
 
-        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uh")) != -1) {
+        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uh")) != -1)
+        {
 
-            switch (c) {
-                case 'd':
-                    directory = optarg;
-                    break;
-                case 'n':
-                    numCams = atoi(optarg);
-                    break;
-                case 'i':
-                    wantsIntrinsics = true;
-                    break;
-                case 'e':
-                    wantsExtrinsics = true;
-                    break;
-                case 't':
-                    patternFinderCode = atoi(optarg);
-                    break;
-                case 'a':
-                    maxPatternsToKeep = atoi(optarg);
-                    break;
-                case 'b':
-                    maxPatternsPerSet = atoi(optarg);
-                    break;
-                case 'g':
-                    gridSize = atof(optarg);
-                    break;
-                case 'x':
-                    x = atoi(optarg);
-                    break;
-                case 'y':
-                    y = atoi(optarg);
-                    break;
-                case 's':
-                    wantsToDisplay = true;
-                    break;
-                case 'o':
-                    optimizationCode = atoi(optarg);
-                    break;
-                case 'u':
-                    wantsToUndistort = true;
-                    break;
-                case 'w':
-                    wantsToWrite = true;
-                    break;
-                case 'q':
-                    inputIsFolder = false;
-                    break;
-                case 'h':
-                    usage(argv[0]);
-                    break;
-                default:
-                    printf("Invalid option -%c\n", c);
-                    printf("Run %s -h for help.\n", argv[0]);
-                    //usage(argv[0]);
-                    return 1;
+            switch (c)
+            {
+            case 'd':
+                directory = optarg;
+                break;
+            case 'n':
+                numCams = atoi(optarg);
+                break;
+            case 'i':
+                wantsIntrinsics = true;
+                break;
+            case 'e':
+                wantsExtrinsics = true;
+                break;
+            case 't':
+                patternFinderCode = atoi(optarg);
+                break;
+            case 'a':
+                maxPatternsToKeep = atoi(optarg);
+                break;
+            case 'b':
+                maxPatternsPerSet = atoi(optarg);
+                break;
+            case 'g':
+                gridSize = atof(optarg);
+                break;
+            case 'x':
+                x = atoi(optarg);
+                break;
+            case 'y':
+                y = atoi(optarg);
+                break;
+            case 's':
+                wantsToDisplay = true;
+                break;
+            case 'o':
+                optimizationCode = atoi(optarg);
+                break;
+            case 'u':
+                wantsToUndistort = true;
+                break;
+            case 'w':
+                wantsToWrite = true;
+                break;
+            case 'q':
+                inputIsFolder = false;
+                break;
+            case 'h':
+                usage(argv[0]);
+                break;
+            default:
+                printf("Invalid option -%c\n", c);
+                printf("Run %s -h for help.\n", argv[0]);
+                //usage(argv[0]);
+                return 1;
             }
 
         }
@@ -106,9 +112,12 @@ int main(int argc, char* argv[]) {
 
     printf("%s << Parent directory is: %s\n", __FUNCTION__, directory);
 
-    if (!inputIsFolder) {
+    if (!inputIsFolder)
+    {
         printf("%s << Input in video format.\n", __FUNCTION__);
-    } else {
+    }
+    else
+    {
         printf("%s << Input in image format.\n", __FUNCTION__);
     }
 
@@ -138,13 +147,15 @@ int main(int argc, char* argv[]) {
 
     bool sameNum = true;
 
-    if (wantsExtrinsics) {
+    if (wantsExtrinsics)
+    {
         extrinsicParams = (char*) malloc(strlen(directory) + 128);
         sprintf(extrinsicParams, "%s/%s%d%s", directory, "extrinsics-", numCams, ".yml");
         printf("%s << extrinsicParams = %s\n", __FUNCTION__, extrinsicParams);
     }
 
-    for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+    for (unsigned int nnn = 0; nnn < numCams; nnn++)
+    {
         inStream[nnn] = (char*) malloc(strlen(directory) + 128);
         outStream[nnn] = (char*) malloc(strlen(directory) + 128);
 
@@ -157,25 +168,27 @@ int main(int argc, char* argv[]) {
     int * randomIndexArray;
     randomIndexArray = new int[maxFramesToLoad];
 
-    if (inputIsFolder) {
+    if (inputIsFolder)
+    {
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
 
-            #if defined(WIN32)
-                UINT counter(0);
-                bool working(true);
-                string buffer;
-                string fileName[1000];
+#if defined(WIN32)
+            UINT counter(0);
+            bool working(true);
+            string buffer;
+            string fileName[1000];
 
-                WIN32_FIND_DATA myimage;
-                HANDLE myHandle;
+            WIN32_FIND_DATA myimage;
+            HANDLE myHandle;
 
-                sprintf(inStream[nnn], "%s\\%d\\", directory, nnn);
-                sprintf(outStream[nnn], "%s\\%d-r\\", directory, nnn);
-            #else
-                sprintf(inStream[nnn], "%s/%d/", directory, nnn);
-                sprintf(outStream[nnn], "%s/%d-r/", directory, nnn);
-            #endif
+            sprintf(inStream[nnn], "%s\\%d\\", directory, nnn);
+            sprintf(outStream[nnn], "%s\\%d-r\\", directory, nnn);
+#else
+            sprintf(inStream[nnn], "%s/%d/", directory, nnn);
+            sprintf(outStream[nnn], "%s/%d-r/", directory, nnn);
+#endif
 
 
 
@@ -185,77 +198,85 @@ int main(int argc, char* argv[]) {
 
 
 
-            #if defined(WIN32)
+#if defined(WIN32)
 
-                //printf("%s << DEBUG /%d/%d/\n", __FUNCTION__, 0, -2);
+            //printf("%s << DEBUG /%d/%d/\n", __FUNCTION__, 0, -2);
 
-                counter = 0;
+            counter = 0;
 
-                char * imageSearcher;
+            char * imageSearcher;
 
-                imageSearcher = (char*) malloc(strlen(directory) + 128);
-
-
-                sprintf(imageSearcher, "%s/*", inStream[nnn]);
-
-                myHandle=FindFirstFile(imageSearcher,&myimage);
-
-                if(myHandle!=INVALID_HANDLE_VALUE) {
-
-                    buffer=myimage.cFileName;
-
-                    if (buffer.length() > 4) {
-                            inputList[nnn].push_back(buffer);
-                    }
+            imageSearcher = (char*) malloc(strlen(directory) + 128);
 
 
-                    while(working) {
-                        FindNextFile(myHandle,&myimage);
-                        if(myimage.cFileName!=buffer) {
-                             buffer=myimage.cFileName;
+            sprintf(imageSearcher, "%s/*", inStream[nnn]);
 
-                             //printf("%s << %s (%c)\n", __FUNCTION__, buffer.c_str(), buffer.at(buffer.length()-1));
-                             //cin.get();
+            myHandle=FindFirstFile(imageSearcher,&myimage);
 
-                                if (buffer.length() > 4) {
-                             //if ((buffer != "..") && (buffer != ".")) {
-                                ++counter;
-                                 inputList[nnn].push_back(buffer);
-                                 // printf("%s << Files counted: %d (%s)\n", __FUNCTION__, counter, buffer.c_str());
-                                 // printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, counter-1, (inputList[nnn].at(counter-1)).c_str());
-                             }
+            if(myHandle!=INVALID_HANDLE_VALUE)
+            {
 
-                        }
-                        else
+                buffer=myimage.cFileName;
+
+                if (buffer.length() > 4)
+                {
+                    inputList[nnn].push_back(buffer);
+                }
+
+
+                while(working)
+                {
+                    FindNextFile(myHandle,&myimage);
+                    if(myimage.cFileName!=buffer)
+                    {
+                        buffer=myimage.cFileName;
+
+                        //printf("%s << %s (%c)\n", __FUNCTION__, buffer.c_str(), buffer.at(buffer.length()-1));
+                        //cin.get();
+
+                        if (buffer.length() > 4)
                         {
-                              //end of files reached
-                              working=false;
+                            //if ((buffer != "..") && (buffer != ".")) {
+                            ++counter;
+                            inputList[nnn].push_back(buffer);
+                            // printf("%s << Files counted: %d (%s)\n", __FUNCTION__, counter, buffer.c_str());
+                            // printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, counter-1, (inputList[nnn].at(counter-1)).c_str());
                         }
 
                     }
-
-                    sort(inputList[nnn].begin(), inputList[nnn].end());
-
-                    for (int qrw = 0; qrw < inputList[nnn].size(); qrw++) {
-                        //printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, qrw, (inputList[nnn].at(qrw).c_str()));
+                    else
+                    {
+                        //end of files reached
+                        working=false;
                     }
 
                 }
 
-            #else
-                dirp = opendir(inStream[nnn]);
+                sort(inputList[nnn].begin(), inputList[nnn].end());
 
-                while ((entry = readdir(dirp)) != NULL) {
-                    //printf("DEBUG C.\n");
-                    if (entry->d_type == DT_REG) { // If the entry is a regular file
-
-                        inputList[nnn].push_back(string(entry->d_name));
-
-                    }
+                for (int qrw = 0; qrw < inputList[nnn].size(); qrw++)
+                {
+                    //printf("%s << inputList[%d].at(%d) = %s\n", __FUNCTION__, nnn, qrw, (inputList[nnn].at(qrw).c_str()));
                 }
 
-                closedir(dirp);
-            #endif
+            }
+
+#else
+            dirp = opendir(inStream[nnn]);
+
+            while ((entry = readdir(dirp)) != NULL)
+            {
+                //printf("DEBUG C.\n");
+                if (entry->d_type == DT_REG)   // If the entry is a regular file
+                {
+
+                    inputList[nnn].push_back(string(entry->d_name));
+
+                }
+            }
+
+            closedir(dirp);
+#endif
 
 
 
@@ -266,13 +287,16 @@ int main(int argc, char* argv[]) {
 
         }
 
-        for (int nnn = 0; nnn < numCams-1; nnn++) {
-            if (inputList[nnn].size() != inputList[nnn+1].size()) {
+        for (int nnn = 0; nnn < numCams-1; nnn++)
+        {
+            if (inputList[nnn].size() != inputList[nnn+1].size())
+            {
                 sameNum = false;
             }
         }
 
-        if (sameNum) {
+        if (sameNum)
+        {
             maxFramesToLoad = std::min((int)inputList[0].size(), (int)maxFramesToLoad);
             printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
 
@@ -284,18 +308,24 @@ int main(int argc, char* argv[]) {
 
             sort(culledList.begin(), culledList.end());
 
-            for (int qrw = 0; qrw < culledList.size(); qrw++) {
+            for (int qrw = 0; qrw < culledList.size(); qrw++)
+            {
                 printf("%s << culledList.at(%d) = %s\n", __FUNCTION__, qrw, (culledList.at(qrw).c_str()));
             }
 
-        } else {
+        }
+        else
+        {
             printf("%s << Frame count mismatch.\n", __FUNCTION__);
             return -1;
         }
-    } else {
+    }
+    else
+    {
         // Input is a video!!
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
 
             sprintf(inStream[nnn], "%s/%d.avi", directory, nnn);
 
@@ -306,10 +336,13 @@ int main(int argc, char* argv[]) {
 
             cap[nnn].open(inStream[nnn]);
 
-            if(!cap[nnn].isOpened()) {
+            if(!cap[nnn].isOpened())
+            {
                 printf("%s << Failed to open capture device...\n", __FUNCTION__);
                 return -1;
-            } else {
+            }
+            else
+            {
                 printf("%s << Successfully opened capture device!\n", __FUNCTION__);
             }
 
@@ -329,13 +362,16 @@ int main(int argc, char* argv[]) {
 
         }
 
-        for (int nnn = 0; nnn < numCams-1; nnn++) {
-            if (videoFrameCount[nnn] != videoFrameCount[nnn+1]) {
+        for (int nnn = 0; nnn < numCams-1; nnn++)
+        {
+            if (videoFrameCount[nnn] != videoFrameCount[nnn+1])
+            {
                 sameNum = false;
             }
         }
 
-        if (sameNum) {
+        if (sameNum)
+        {
             maxFramesToLoad = std::min(videoFrameCount[0], (int)maxFramesToLoad);
             printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
 
@@ -344,30 +380,35 @@ int main(int argc, char* argv[]) {
 
             generateRandomIndexArray(randomIndexArray, maxFramesToLoad, videoFrameCount[0]);
 
-        } else {
+        }
+        else
+        {
             printf("%s << Frame count mismatch.\n", __FUNCTION__);
             return -1;
         }
 
     }
 
-    printf("%s << Q: %d / %d \n", __FUNCTION__, inputList[0].size(), culledList.size());
+    // printf("%s << Q: %d / %d \n", __FUNCTION__, inputList[0].size(), culledList.size());
 
     FileStorage fs;
 
     Mat imageSize_mat[MAX_CAMS], cameraMatrix[MAX_CAMS], newCamMat[MAX_CAMS], distCoeffs[MAX_CAMS], rectCamMat[MAX_CAMS];
     Size imageSize_size[MAX_CAMS];
 
-    for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+    for (unsigned int nnn = 0; nnn < numCams; nnn++)
+    {
         imageSize_mat[nnn] = Mat(1, 2, CV_16UC1);
     }
 
     Rect validROI[MAX_CAMS];
 
-    if (wantsExtrinsics && (!wantsIntrinsics)) {
+    if (wantsExtrinsics && (!wantsIntrinsics))
+    {
 
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
 
 
             printf("%s << intrinsicParams[%d] = %s\n", __FUNCTION__, nnn, intrinsicParams[nnn]);
@@ -413,8 +454,10 @@ int main(int argc, char* argv[]) {
     cv::vector<Point2f> cornerSet;
     cv::vector<cv::vector<Point2f> > cornersList[MAX_CAMS];
 
-    for (int i = 0; i < y; i++) {
-        for (int j = 0; j < x; j++) {
+    for (int i = 0; i < y; i++)
+    {
+        for (int j = 0; j < x; j++)
+        {
             row.push_back(Point3f(i*gridSize, j*gridSize, 0.0));
         }
     }
@@ -431,20 +474,24 @@ int main(int argc, char* argv[]) {
 
     vector<bool> foundRecord[MAX_CAMS];
 
-	int index = 0, frameIndex = 0;
+    int index = 0, frameIndex = 0;
     // --------------------------------------------- THE PATTERN SEARCH
 
     // Run through each camera separately to find the patterns
-    for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+    for (unsigned int nnn = 0; nnn < numCams; nnn++)
+    {
 
         index = 0;
         frameIndex = 0;
 
         int numFramesToCapture = 0;
 
-        if (inputIsFolder) {
+        if (inputIsFolder)
+        {
             numFramesToCapture = min((int)culledList.size(), maxFramesToLoad);
-        } else {
+        }
+        else
+        {
             numFramesToCapture = maxFramesToLoad;
             cap[nnn].open(inStream[nnn]);
         }
@@ -452,10 +499,12 @@ int main(int argc, char* argv[]) {
 
 
         // For each frame for each camera
-        while (index < numFramesToCapture) {
+        while (index < numFramesToCapture)
+        {
 
 
-            if (inputIsFolder) {
+            if (inputIsFolder)
+            {
                 //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 3);
                 printf("%s << inStream[nnn] = %s\n", __FUNCTION__, inStream[nnn]);
                 //printf("%s << CL = %s\n", __FUNCTION__, (culledList.at(index)).c_str());
@@ -465,8 +514,11 @@ int main(int argc, char* argv[]) {
                 //cin.get();
                 inputMat[nnn] = imread(filename);
                 //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 4);
-            } else {
-                while (frameIndex <= randomIndexArray[index]) {
+            }
+            else
+            {
+                while (frameIndex <= randomIndexArray[index])
+                {
                     cap[nnn] >> inputMat[nnn];
                     frameIndex++;
                 }
@@ -496,22 +548,23 @@ int main(int argc, char* argv[]) {
 
             cornerSet.clear();
 
-            switch (patternFinderCode) {
-                case CHESSBOARD_FINDER_CODE:
-                    patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
-                    break;
-                case MASK_FINDER_CODE:
-                    //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 1, 6);
-                    patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
-                    break;
-                case HEATED_CHESSBOARD_FINDER_CODE:
-                    invertMatIntensities(inputMat[nnn], tmpMat);
-                    tmpMat.copyTo(inputMat[nnn]);
-                    patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
-                    break;
-                default:
-                    patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
-                    break;
+            switch (patternFinderCode)
+            {
+            case CHESSBOARD_FINDER_CODE:
+                patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
+                break;
+            case MASK_FINDER_CODE:
+                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 1, 6);
+                patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
+                break;
+            case HEATED_CHESSBOARD_FINDER_CODE:
+                invertMatIntensities(inputMat[nnn], tmpMat);
+                tmpMat.copyTo(inputMat[nnn]);
+                patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
+                break;
+            default:
+                patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
+                break;
             }
 
             //printf("%s << Pattern found? %d\n", __FUNCTION__, patternFound);
@@ -520,7 +573,8 @@ int main(int argc, char* argv[]) {
 
             drawChessboardCorners(dispMat, cvSize(x, y), Mat(cornerSet), patternFound);
 
-            if (wantsToDisplay) {
+            if (wantsToDisplay)
+            {
                 imshow("displayWindow", dispMat);
                 waitKey(40);
             }
@@ -532,7 +586,8 @@ int main(int argc, char* argv[]) {
 
         }
 
-        if (!inputIsFolder)  {
+        if (!inputIsFolder)
+        {
             cap[nnn].release();
         }
 
@@ -547,11 +602,13 @@ int main(int argc, char* argv[]) {
 
     cv::vector<cv::vector<Point2f> > candidatesList[MAX_CAMS];
 
-    if (wantsIntrinsics) {
+    if (wantsIntrinsics)
+    {
 
         distributionMap.resize(numCams);
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
 
             imageSize_size[nnn] = inputMat[nnn].size();
 
@@ -562,8 +619,10 @@ int main(int argc, char* argv[]) {
             cv::vector<cv::vector<Point2f> > intrinsicsList;
             vector<string> extractedList;
 
-            for (unsigned int iii = 0; iii < cornersList[nnn].size(); iii++) {
-                if (foundRecord[nnn][iii] == true) {
+            for (unsigned int iii = 0; iii < cornersList[nnn].size(); iii++)
+            {
+                if (foundRecord[nnn][iii] == true)
+                {
                     intrinsicsList.push_back(cornersList[nnn].at(iii));
                     extractedList.push_back(culledList.at(iii));
                     tagNames[nnn].push_back(iii);
@@ -573,12 +632,14 @@ int main(int argc, char* argv[]) {
             }
 
 
-            if (intrinsicsList.size() > maxPatternsToKeep) {
+            if (intrinsicsList.size() > maxPatternsToKeep)
+            {
                 //randomCulling(extractedList, maxPatternsToKeep, intrinsicsList);
                 randomCulling(extractedList, maxPatternsToKeep, intrinsicsList);
             }
 
-            for (int iii = 0; iii < intrinsicsList.size(); iii++) {
+            for (int iii = 0; iii < intrinsicsList.size(); iii++)
+            {
                 candidatesList[nnn].push_back(intrinsicsList[iii]);
             }
 
@@ -589,7 +650,8 @@ int main(int argc, char* argv[]) {
             cv::vector< cv::vector<Point3f> > objectPoints;
             cv::vector<Mat> rvecs, tvecs;
 
-            for (int iii = 0; iii < candidatesList[nnn].size(); iii++) {
+            for (int iii = 0; iii < candidatesList[nnn].size(); iii++)
+            {
                 objectPoints.push_back(row);
             }
 
@@ -598,10 +660,13 @@ int main(int argc, char* argv[]) {
 
             printf("%s << Optimization Complete.\n", __FUNCTION__);
 
-            if (candidatesList[nnn].size() == 0) {
+            if (candidatesList[nnn].size() == 0)
+            {
                 printf("%s << No patterns remaining - cannot calibrate. Returning.\n", __FUNCTION__);
                 return 1;
-            } else {
+            }
+            else
+            {
                 printf("%s << Total number of patterns remaining after optimization: %d\n", __FUNCTION__, candidatesList[nnn].size());
             }
 
@@ -651,7 +716,8 @@ int main(int argc, char* argv[]) {
 
             printf("%s << Writing to file...DONE.\n", __FUNCTION__);
 
-            if (wantsToUndistort) {
+            if (wantsToUndistort)
+            {
 
 
                 // Create directories
@@ -660,13 +726,13 @@ int main(int argc, char* argv[]) {
 
                 sprintf(newDirectoryPath, "%s/%d-u", directory, nnn);
 
-                #if defined(WIN32)
-                    //boost::filesystem::create_directory(newDirectoryPath);
+#if defined(WIN32)
+                //boost::filesystem::create_directory(newDirectoryPath);
 
-                    CreateDirectory(newDirectoryPath, NULL);
-                #else
-                    mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
-                #endif
+                CreateDirectory(newDirectoryPath, NULL);
+#else
+                mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+#endif
 
 
                 printf("%s << Undistorting Images...\n", __FUNCTION__);
@@ -677,14 +743,18 @@ int main(int argc, char* argv[]) {
                 char inputFilename[256], outputFilename[256];
 
 
-                for (int i = 0; i < inputList[nnn].size(); i++) {
+                for (int i = 0; i < inputList[nnn].size(); i++)
+                {
 
-                    if (inputIsFolder) {
+                    if (inputIsFolder)
+                    {
                         //sprintf(inputFilename, "%s%d.%s", input, i+1, "jpg");
                         sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
                         inputMat[nnn] = imread(inputFilename);
 
-                    } else {
+                    }
+                    else
+                    {
                         //videoReader >> inputMat;
                     }
 
@@ -693,13 +763,16 @@ int main(int argc, char* argv[]) {
                     imshow("undistortedWin", undistortedMat);
                     waitKey(40);
 
-                    if (inputIsFolder) {
+                    if (inputIsFolder)
+                    {
                         sprintf(outputFilename, "%s/%d.jpg", newDirectoryPath, i);
-                    } else {
+                    }
+                    else
+                    {
                         //sprintf(outputFilename, "%s%s%s", inputFolderString, "undistorted/", (inputList.at(i)).c_str());
                     }
 
-                        //printf("%s << writing to file: %s\n", __FUNCTION__, outputFilename);
+                    //printf("%s << writing to file: %s\n", __FUNCTION__, outputFilename);
 
                     imwrite(outputFilename, undistortedMat);
 
@@ -708,22 +781,24 @@ int main(int argc, char* argv[]) {
         }
 
 
-	}
+    }
 
-	if (wantsExtrinsics) {
+    if (wantsExtrinsics)
+    {
 
-	    cv::vector<Mat> extrinsicsDistributionMap;
-	    extrinsicsDistributionMap.resize(numCams);
+        cv::vector<Mat> extrinsicsDistributionMap;
+        extrinsicsDistributionMap.resize(numCams);
 
-	    printf("%s << Calculating extrinsics...\n", __FUNCTION__);
+        printf("%s << Calculating extrinsics...\n", __FUNCTION__);
 
-	    cv::vector<cv::vector<Point2f> > emptyPointSetVector;
-	    vector<int> emptyIntVector;
+        cv::vector<cv::vector<Point2f> > emptyPointSetVector;
+        vector<int> emptyIntVector;
 
-	    cv::vector<cv::vector<cv::vector<Point2f> > > extrinsicsList, extrinsicsCandidates;
+        cv::vector<cv::vector<cv::vector<Point2f> > > extrinsicsList, extrinsicsCandidates;
         vector<string> extractedList;
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
             extrinsicsList.push_back(emptyPointSetVector);
             extrinsicsCandidates.push_back(emptyPointSetVector);
             extrinsicTagNames.push_back(emptyIntVector);
@@ -731,18 +806,23 @@ int main(int argc, char* argv[]) {
             extrinsicsDistributionMap.at(nnn) = Mat(inputMat[nnn].size(), CV_8UC1);
         }
 
-	    for (unsigned int iii = 0; iii < cornersList[0].size(); iii++) {
+        for (unsigned int iii = 0; iii < cornersList[0].size(); iii++)
+        {
 
-	        bool allPatternsFound = true;
+            bool allPatternsFound = true;
 
-	        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
-                if (foundRecord[nnn][iii] == false) {
+            for (unsigned int nnn = 0; nnn < numCams; nnn++)
+            {
+                if (foundRecord[nnn][iii] == false)
+                {
                     allPatternsFound = false;
                 }
-	        }
+            }
 
-	        if (allPatternsFound) {
-                for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+            if (allPatternsFound)
+            {
+                for (unsigned int nnn = 0; nnn < numCams; nnn++)
+                {
                     extrinsicsList.at(nnn).push_back(cornersList[nnn].at(iii));
                     extrinsicsCandidates.at(nnn).push_back(cornersList[nnn].at(iii));
 
@@ -753,14 +833,15 @@ int main(int argc, char* argv[]) {
 
 
 
-	        }
+            }
 
         }
 
 
         vector<Size> extrinsicsSizes;
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
             extrinsicsSizes.push_back(imageSize_size[nnn]);
         }
 
@@ -784,20 +865,23 @@ int main(int argc, char* argv[]) {
 
         cv::vector< cv::vector<Point3f> > objectPoints;
 
-        for (int iii = 0; iii < extrinsicsCandidates[0].size(); iii++) {
+        for (int iii = 0; iii < extrinsicsCandidates[0].size(); iii++)
+        {
             objectPoints.push_back(row);
         }
 
-        for (unsigned int nnn = 0; nnn < numCams; nnn++) {
-            for (int k = 0; k < numCams-1; k++) {
+        for (unsigned int nnn = 0; nnn < numCams; nnn++)
+        {
+            for (int k = 0; k < numCams-1; k++)
+            {
                 stereoCalibrate(objectPoints,
-                        extrinsicsCandidates.at(0), extrinsicsCandidates.at(k+1),
-                        cameraMatrix[0], distCoeffs[0],
-                        cameraMatrix[k+1], distCoeffs[k+1],
-                        imageSize_size[0],                      // hopefully multiple cameras allow multiple image sizes
-                        R[k+1], T[k+1], E[k+1], F[k+1],
-                        term_crit,
-                        EXTRINSICS_FLAGS); //
+                                extrinsicsCandidates.at(0), extrinsicsCandidates.at(k+1),
+                                cameraMatrix[0], distCoeffs[0],
+                                cameraMatrix[k+1], distCoeffs[k+1],
+                                imageSize_size[0],                      // hopefully multiple cameras allow multiple image sizes
+                                R[k+1], T[k+1], E[k+1], F[k+1],
+                                term_crit,
+                                EXTRINSICS_FLAGS); //
 
 
             }
@@ -824,7 +908,8 @@ int main(int argc, char* argv[]) {
         tmpString = string(tmp);
         fs << tmpString << extendedExtrinsicReprojectionError;
 
-        for (int i = 0; i < numCams; i++) {
+        for (int i = 0; i < numCams; i++)
+        {
 
             sprintf(tmp, "R%d", i);
             //printf("%s << tmp = %s.\n", __FUNCTION__, tmp);
@@ -875,10 +960,12 @@ int main(int argc, char* argv[]) {
 
         fs.release();
 
-        if (wantsToUndistort) {
+        if (wantsToUndistort)
+        {
 
             // Obtain Rectification Maps
-            if (numCams == 2) {
+            if (numCams == 2)
+            {
                 printf("%s << 2 Cameras.\n", __FUNCTION__);
 
                 Rect roi1, roi2;
@@ -902,15 +989,17 @@ int main(int argc, char* argv[]) {
                               CALIB_ZERO_DISPARITY);
                   */
 
-            } else if (numCams == 3) {
+            }
+            else if (numCams == 3)
+            {
                 printf("%s << 3 Camera rectification commencing. (alpha = %f)\n", __FUNCTION__, alpha);
 
                 double ratio =  rectify3Collinear(cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
-                                                    distCoeffs[1], cameraMatrix[2], distCoeffs[2],
-                                                    extrinsicsCandidates.at(0), extrinsicsCandidates.at(2),
-                                                    imageSize_size[0], R[1], T[1], R[2], T[2],
-                                                    R_[0], R_[1], R_[2], P_[0], P_[1], P_[2], Q, alpha,
-                                                    imageSize_size[0], 0, 0, CV_CALIB_ZERO_DISPARITY);
+                                                  distCoeffs[1], cameraMatrix[2], distCoeffs[2],
+                                                  extrinsicsCandidates.at(0), extrinsicsCandidates.at(2),
+                                                  imageSize_size[0], R[1], T[1], R[2], T[2],
+                                                  R_[0], R_[1], R_[2], P_[0], P_[1], P_[2], Q, alpha,
+                                                  imageSize_size[0], 0, 0, CV_CALIB_ZERO_DISPARITY);
 
                 printf("%s << 3 Camera rectification complete.\n", __FUNCTION__);
             }
@@ -926,16 +1015,17 @@ int main(int argc, char* argv[]) {
 
             Mat blankCoeffs(1, 8, CV_64F);
 
-            for (int i = 0; i < numCams; i++) {
+            for (int i = 0; i < numCams; i++)
+            {
 
                 initUndistortRectifyMap(cameraMatrix[i],
-                                    distCoeffs[i],
-                                    R_[i],
-                                    P_[i],  // newCamMat[i]
-                                    imageSize_size[i],
-                                    CV_32F,     // CV_16SC2
-                                    mapx[i],    // map1[i]
-                                    mapy[i]);   // map2[i]
+                                        distCoeffs[i],
+                                        R_[i],
+                                        P_[i],  // newCamMat[i]
+                                        imageSize_size[i],
+                                        CV_32F,     // CV_16SC2
+                                        mapx[i],    // map1[i]
+                                        mapy[i]);   // map2[i]
 
                 pt1 = Point(validROI[i].x, validROI[i].y);
                 pt2 = Point(validROI[i].x + validROI[i].width, validROI[i].y + validROI[i].height);
@@ -956,11 +1046,13 @@ int main(int argc, char* argv[]) {
 
                 printf("%s << pt1 = (%d, %d); pt2 = (%d, %d)\n", __FUNCTION__, pt1.x, pt1.y, pt2.x, pt2.y);
 
-                if (pt1.y > topValidHeight) {
+                if (pt1.y > topValidHeight)
+                {
                     topValidHeight = pt1.y;
                 }
 
-                if (pt2.y < botValidHeight) {
+                if (pt2.y < botValidHeight)
+                {
                     botValidHeight = pt2.y;
                 }
 
@@ -973,25 +1065,28 @@ int main(int argc, char* argv[]) {
             vector<Point2f> leftLinePoints, rightLinePoints;
 
             // Prepare epipolar lines etc:
-            for (int k = 1; k < 32; k++) {
+            for (int k = 1; k < 32; k++)
+            {
                 // should try to center it on the final (thermal) image
                 leftLinePoints.push_back(Point2f(0, k*(botValidHeight - topValidHeight)/32 - 1));
                 rightLinePoints.push_back(Point2f(imageSize_size[0].width, k*(botValidHeight - topValidHeight)/32 - 1));
             }
 
             // Read in images again
-            for (int i = 0; i < numCams; i++) {
+            for (int i = 0; i < numCams; i++)
+            {
 
-                for (int index = 0; index < inputList[i].size(); index++) {
+                for (int index = 0; index < inputList[i].size(); index++)
+                {
 
                     char newDirectoryPath[256];
                     sprintf(newDirectoryPath, "%s/%d-r", directory, i);
 
-                    #if defined(WIN32)
-                        CreateDirectory(newDirectoryPath, NULL);
-                    #else
-                        mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
-                    #endif
+#if defined(WIN32)
+                    CreateDirectory(newDirectoryPath, NULL);
+#else
+                    mkdir(newDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+#endif
 
 
 

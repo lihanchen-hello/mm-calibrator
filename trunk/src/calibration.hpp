@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 #ifdef _WIN32
-    #include <ctime>
+#include <ctime>
 #endif
 
 #define CHESSBOARD_FINDER_CODE          0
@@ -73,7 +73,8 @@ using namespace std;
 using namespace cv;
 
 /// \brief		Class enables for storing an MSER feature beyond simply its bounding points
-class mserPatch {
+class mserPatch
+{
 public:
     /// \brief		Point vector representing the bounding points of the patch
     vector<Point> hull;

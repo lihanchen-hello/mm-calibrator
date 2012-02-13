@@ -23,17 +23,17 @@
 #include <stdio.h>
 
 #if defined(WIN32)
-    #include "XGetopt.h"
-    #include <windows.h>
+#include "XGetopt.h"
+#include <windows.h>
 #else
-    const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 #endif
 
 
 #define DEFAULT_CAM_COUNT 1
 
-#define DEFAULT_FRAMES_TO_LOAD 20 // should be at least 1000
-#define DEFAULT_PATTERNS_TO_KEEP 20
+#define DEFAULT_FRAMES_TO_LOAD 100 // should be at least 1000
+#define DEFAULT_PATTERNS_TO_KEEP 100
 #define DEFAULT_MAX_PATTERNS_PER_SET 10
 
 #define DEFAULT_GRID_SIZE 10
@@ -50,13 +50,13 @@ using namespace std;
 
 static void usage(const char *argv0)
 {
-	printf("Usage: %s [options]\n", argv0);
-	printf("Supported options:\n");
-	printf("-d, --directory                             Parent directory or video address.\n");
-	printf("-n, --number                                Number of cameras to calibrate.\n");
-	printf("-i, --intrinsics                            Option to calculate intrinsics.\n");
-	printf("-e, --extrinsics                            Option to calculate extrinsics.\n");
-	printf("-t, --type                                  Pattern type:\n\
+    printf("Usage: %s [options]\n", argv0);
+    printf("Supported options:\n");
+    printf("-d, --directory                             Parent directory or video address.\n");
+    printf("-n, --number                                Number of cameras to calibrate.\n");
+    printf("-i, --intrinsics                            Option to calculate intrinsics.\n");
+    printf("-e, --extrinsics                            Option to calculate extrinsics.\n");
+    printf("-t, --type                                  Pattern type:\n\
                                                         [0] Regular chessboard\n\
                                                         [1] Mask\n\
                                                         [2] Thermal chessboard\n");

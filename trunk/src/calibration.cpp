@@ -1,16 +1,19 @@
 #include "calibration.hpp"
 
-void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal) {
+void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal)
+{
 
     srand ( (unsigned int)(time(NULL)) );
 
     vector<int> validValuesVector, randomSelection;
 
-    for (int iii = 0; iii < maxVal; iii++) {
+    for (int iii = 0; iii < maxVal; iii++)
+    {
         validValuesVector.push_back(iii);
     }
 
-    for (int iii = 0; iii < maxElements; iii++) {
+    for (int iii = 0; iii < maxElements; iii++)
+    {
         int currIndex = rand() % validValuesVector.size();
 
         randomSelection.push_back(validValuesVector.at(currIndex));
@@ -19,19 +22,22 @@ void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal) {
 
     sort(randomSelection.begin(), randomSelection.end());
 
-    for (int iii = 0; iii < randomSelection.size(); iii++) {
+    for (int iii = 0; iii < randomSelection.size(); iii++)
+    {
         randomArray[iii] = randomSelection.at(iii);
     }
 }
 
-mserPatch::mserPatch() {
+mserPatch::mserPatch()
+{
 
 }
 
-mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image) {
+mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image)
+{
     double dbx, dby;
     int x, y, division = 0;
-	meanIntensity = 0.0;
+    meanIntensity = 0.0;
 
     copyContour(inputHull, hull);
 
@@ -52,10 +58,13 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image) {
     int searchDist = 15;
 
     // get mean pixel intensity
-    for (int i = x-searchDist; i < x+searchDist+1; i++) {
-        for (int j = y-searchDist; j < y+searchDist+1; j++) {
+    for (int i = x-searchDist; i < x+searchDist+1; i++)
+    {
+        for (int j = y-searchDist; j < y+searchDist+1; j++)
+        {
 
-            if (pointPolygonTest(Mat(hull), Point2f(i,j), false) > 0.0) {
+            if (pointPolygonTest(Mat(hull), Point2f(i,j), false) > 0.0)
+            {
                 //printf("%s << (j, i) = (%d, %d)\n", __FUNCTION__, j, i);
                 meanIntensity = meanIntensity + double(image.at<Vec3b>(j,i)[0]);
                 division++;
@@ -68,10 +77,13 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image) {
     // get variance
     varIntensity = 0.0;
 
-    for (int i = x-searchDist; i < x+searchDist+1; i++) {
-        for (int j = y-searchDist; j < y+searchDist+1; j++) {
+    for (int i = x-searchDist; i < x+searchDist+1; i++)
+    {
+        for (int j = y-searchDist; j < y+searchDist+1; j++)
+        {
 
-            if (pointPolygonTest(Mat(hull), Point2f(i,j), false) > 0.0) {
+            if (pointPolygonTest(Mat(hull), Point2f(i,j), false) > 0.0)
+            {
                 //printf("%s << (j, i) = (%d, %d)\n", __FUNCTION__, j, i);
                 varIntensity += pow((meanIntensity - double(image.at<Vec3b>(j,i)[0])), 2);
             }
@@ -93,7 +105,7 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image) {
                     j++;
                 } else {
                     //printf("center: %d, %d\n", x, y);
-					//printf("%s << j = %d; i = %d\n", __FUNCTION__, j, i);
+    				//printf("%s << j = %d; i = %d\n", __FUNCTION__, j, i);
                     meanIntensity = meanIntensity + double(image.at<Vec3b>(j,i)[0]);
                     //printf("in loop: %d, %d\n", i, j);
                     //cin.get();
@@ -110,22 +122,28 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image) {
     // get variance of pixel intensity
 }
 
-bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, int detector) {
+bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, int detector)
+{
     return findPatternCorners(image, patternSize, corners, 1, detector);
 }
 
-bool checkAcutance() {
+bool checkAcutance()
+{
     bool retVal = true;
 
     return retVal;
 }
 
-void determinePatchDistribution(Size patternSize, int mode, int &rows, int &cols, int &quant) {
-    if (mode == 0) {
+void determinePatchDistribution(Size patternSize, int mode, int &rows, int &cols, int &quant)
+{
+    if (mode == 0)
+    {
         rows = patternSize.height + 1;
         cols = patternSize.width + 1;
         quant = patternSize.width*patternSize.height/2;
-    } else {
+    }
+    else
+    {
         rows = patternSize.height / 2;
         cols = patternSize.width / 2;
         quant = patternSize.width*patternSize.height/4;
@@ -133,7 +151,8 @@ void determinePatchDistribution(Size patternSize, int mode, int &rows, int &cols
 
 }
 
-void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers) {
+void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers)
+{
 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 0);
 
@@ -157,19 +176,22 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     MSER mserExtractor(7.5, minArea, maxArea, 0.25, 0.2, 200, 1.01, 0.003, 5); // delta = 8, max var = 0.1
     /*
     cvMSERParams(int delta = 5, int min_area = 60, int max_area = 14400, \n"
-		"    float max_variation = .25, float min_diversity = .2, \n"
-		"    int max_evolution = 200, double area_threshold = 1.01, \n"
-		"    double min_margin = .003, \n"
-		"    int edge_blur_size = 5)
+    	"    float max_variation = .25, float min_diversity = .2, \n"
+    	"    int max_evolution = 200, double area_threshold = 1.01, \n"
+    	"    double min_margin = .003, \n"
+    	"    int edge_blur_size = 5)
     */
 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 2);
 
     // Copy image but into greyscale
     Mat imGrey;
-    if (image.channels() > 1) {
+    if (image.channels() > 1)
+    {
         cvtColor(image, imGrey, CV_RGB2GRAY);
-    } else {
+    }
+    else
+    {
         image.copyTo(imGrey);
     }
 
@@ -197,17 +219,20 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 4);
 
     // Clean up MSER features by putting them in a convex hull
-    for (unsigned int i = 0; i < msers.size(); i++) {
+    for (unsigned int i = 0; i < msers.size(); i++)
+    {
         convexHull(Mat(msers[i]), msers[i]);
     }
 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 5);
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << MSERs found: %d\n", __FUNCTION__, msers.size());
     }
 
-    if (DEBUG_MODE > 0) {
+    if (DEBUG_MODE > 0)
+    {
         t = getTickCount() - t;
         printf("%s << Algorithm duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
     }
@@ -220,48 +245,56 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     surfExtractor(imGrey, mask, surfs);
     */
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << Total patches found = %d\n", __FUNCTION__, msers.size());
     }
 }
 
-void randomCulling(vector<std::string> &inputList, int maxSearch) {
+void randomCulling(vector<std::string> &inputList, int maxSearch)
+{
 
     srand ( (unsigned int)(time(NULL)) );
 
     int deletionIndex = 0;
 
-    while (inputList.size() > maxSearch) {
+    while (inputList.size() > maxSearch)
+    {
         deletionIndex = rand() % inputList.size();
         inputList.erase(inputList.begin() + deletionIndex);
     }
 }
 
-void randomCulling(vector<std::string> &inputList, int maxSearch, vector<vector<Point2f> >& patterns) {
+void randomCulling(vector<std::string> &inputList, int maxSearch, vector<vector<Point2f> >& patterns)
+{
 
     srand ( (unsigned int)(time(NULL)) );
 
     int deletionIndex = 0;
 
-    while (inputList.size() > maxSearch) {
+    while (inputList.size() > maxSearch)
+    {
         deletionIndex = rand() % inputList.size();
         inputList.erase(inputList.begin() + deletionIndex);
         patterns.erase(patterns.begin() + deletionIndex);
     }
 }
 
-void randomCulling(vector<string>& inputList, int maxSearch, vector<vector<vector<Point2f> > >& patterns) {
+void randomCulling(vector<string>& inputList, int maxSearch, vector<vector<vector<Point2f> > >& patterns)
+{
     srand ( (unsigned int)(time(NULL)) );
 
     int deletionIndex = 0;
 
     printf("%s << inputList.size() = %d / %d\n", __FUNCTION__, inputList.size(), maxSearch);
 
-    while (inputList.size() > maxSearch) {
+    while (inputList.size() > maxSearch)
+    {
         deletionIndex = rand() % inputList.size();
         inputList.erase(inputList.begin() + deletionIndex);
 
-        for (int i = 0; i < patterns.size(); i++) {
+        for (int i = 0; i < patterns.size(); i++)
+        {
             patterns.at(i).erase(patterns.at(i).begin() + deletionIndex);
         }
 
@@ -272,7 +305,8 @@ void randomCulling(vector<string>& inputList, int maxSearch, vector<vector<vecto
     //cin.get();
 }
 
-void debugDisplayPatches(const Mat& image, vector<vector<Point> >& msers) {
+void debugDisplayPatches(const Mat& image, vector<vector<Point> >& msers)
+{
 
     Scalar color(0, 0, 255);
     Mat dispMat;
@@ -281,30 +315,39 @@ void debugDisplayPatches(const Mat& image, vector<vector<Point> >& msers) {
 
     drawContours(dispMat, msers, -1, color, 1);
 
-    if (image.cols > 640) {
+    if (image.cols > 640)
+    {
         Mat dispMat2;
         resize(dispMat, dispMat2, Size(0,0), 0.5, 0.5);
         imshow("mainWin", dispMat2);
-    } else {
+    }
+    else
+    {
         imshow("mainWin", dispMat);
     }
 
     waitKey(0);
 }
 
-void determineFindablePatches(Size patternSize, int mode, int *XVec, int *YVec) {
+void determineFindablePatches(Size patternSize, int mode, int *XVec, int *YVec)
+{
     int X, Y;
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
 
         Y = patternSize.height + 1;
 
         // XVec tells you how many 'black' patches to look for between extremes in that row
 
-        for (int i = 0; i < Y; i++) {
-            if ((i % 2) > 0) {    // odd
+        for (int i = 0; i < Y; i++)
+        {
+            if ((i % 2) > 0)      // odd
+            {
                 XVec[i] = int(ceil(((double(patternSize.width) + 1)/2)-0.01)-1);
-            } else {        // even
+            }
+            else            // even
+            {
                 XVec[i] = int(floor(((double(patternSize.width) + 1)/2)+0.01)-1);
             }
 
@@ -313,25 +356,37 @@ void determineFindablePatches(Size patternSize, int mode, int *XVec, int *YVec) 
         // YVec tells you how many 'black' patches to look for between extremes on the LHS and RHS
         YVec[0] = int(floor(((patternSize.height + 1)/2)+0.01)-1);
 
-        if (patternSize.width % 2) {    // odd
-            if (patternSize.height % 2) {   // odd
+        if (patternSize.width % 2)      // odd
+        {
+            if (patternSize.height % 2)     // odd
+            {
                 YVec[1] = int(floor(((patternSize.height + 1)/2)+0.01)-1);
-            } else {
+            }
+            else
+            {
                 YVec[1] = int(floor(((patternSize.height + 1)/2)+0.01));
             }
 
-        } else {        // even
+        }
+        else            // even
+        {
             YVec[1] = int(floor(((patternSize.height + 1)/2)+0.01)-1);
         }
 
-    } else {
+    }
+    else
+    {
         X = patternSize.width/2;
         Y = patternSize.height/2;
 
-        for (int i = 0; i < Y; i++) {
-            if (i % 2) {
+        for (int i = 0; i < Y; i++)
+        {
+            if (i % 2)
+            {
                 XVec[i] = patternSize.width/2 - 2;
-            } else {
+            }
+            else
+            {
                 XVec[i] = patternSize.width/2 - 2;
             }
 
@@ -341,18 +396,21 @@ void determineFindablePatches(Size patternSize, int mode, int *XVec, int *YVec) 
         YVec[1] = Y-2;
     }
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         printf("%s << Total number of rows: %d\n", __FUNCTION__, Y);
         printf("%s << Number of findable patches in LHS: %d\n", __FUNCTION__, YVec[0]);
         printf("%s << Number of findable patches in RHS: %d\n", __FUNCTION__, YVec[1]);
 
-        for (int i = 0; i < Y; i++) {
+        for (int i = 0; i < Y; i++)
+        {
             printf("%s << Number of findable patches in row[%d]: %d\n", __FUNCTION__, i, XVec[i]);
         }
     }
 }
 
-void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches) {
+void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches)
+{
 
     Point2f center;
     float angle;
@@ -399,7 +457,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
     fourCorners.at(0).push_back(Point(int(x-Y*sin((3.14/180)*angle)+X*cos((3.14/180)*angle)), int(y+Y*cos((3.14/180)*angle)+X*sin((3.14/180)*angle))));
 
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
         //printf("x = %d, y = %d\n", fourCorners.at(0).at(i).x, fourCorners.at(0).at(i).y);
     }
 
@@ -436,11 +495,13 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
     // For each of the four configurations
     minDist = 9e9;
 
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < 4; k++)
+    {
         orderedCorners.clear();
         sumDist = 0;
         // For each of the remaining rectangle corners
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++)
+        {
             tmpPoint = Point(int(extremesX[i]), int(extremesY[i]));
             dist = distBetweenPts(fourCorners.at(0).at((k+i)%4), tmpPoint);
             //printf("dist[%d,%d] = %f\n", k, i, dist);
@@ -450,7 +511,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
 
         //printf("sumDist[%d] = %f\n", k, sumDist);
 
-        if (sumDist < minDist) {
+        if (sumDist < minDist)
+        {
             minDist = sumDist;
             minIndex = k;
         }
@@ -464,7 +526,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
     orderedCorners.push_back(fourCorners.at(0).at((minIndex+3)%4));
     orderedCorners.push_back(fourCorners.at(0).at((minIndex+2)%4));
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++)
+    {
         //printf("x = %d, y = %d\n", orderedCorners.at(i).x, orderedCorners.at(i).y);
     }
 
@@ -481,9 +544,11 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
     vector<Point> pointPair;
 
     // go thru remaining points and add the ones that are closest to these
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < 4; k++)
+    {
         minDist = 9e9;
-        for (unsigned int i = 0; i < remainingPatches.size(); i++) {
+        for (unsigned int i = 0; i < remainingPatches.size(); i++)
+        {
 
             //printf("%s << remainingPatches.at(%d) = (%f, %f)\n", __FUNCTION__, i, remainingPatches.at(i).x, remainingPatches.at(i).y);
 
@@ -494,7 +559,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
 
             //printf("distance for point [%d] to corner [%d] = %f\n", i, k, dist);
 
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 //printf("minimum found.\n");
                 minDist = dist;
                 minIndex = i;
@@ -507,8 +573,10 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
         transferElement(patchCentres, remainingPatches, minIndex);
     }
 
-    if (DEBUG_MODE > 3) {
-        for (unsigned int i = 0; i < patchCentres.size(); i++) {
+    if (DEBUG_MODE > 3)
+    {
+        for (unsigned int i = 0; i < patchCentres.size(); i++)
+        {
             printf("%s << patchCentres.at(%d) = (%f, %f)\n", __FUNCTION__, i, patchCentres.at(i).x, patchCentres.at(i).y);
         }
 
@@ -538,7 +606,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
     //float extremesX[4] = {0, imageSize.width, 0, imageSize.width};
     //float extremesY[4] = {0, 0, imageSize.height, imageSize.height};
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         printf("%s << imageSize.width = %d; imageSize.height = %d\n", __FUNCTION__, imageSize.width, imageSize.height);
     }
     //int cornerIndex[4] = {0, X-1, X*Y-X, X*Y-1};                    // this should depend on pattern size
@@ -551,15 +620,18 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
 
     //printf("%s << DEBUG 000\n", __FUNCTION__);
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         printf("%s << remainingPatches.size() = %d\n", __FUNCTION__, remainingPatches.size());
     }
 
     // For all 4 corners...
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < 4; k++)
+    {
         minDist = 99999999;
         // Search all remaining patches
-        for (unsigned int i = 0; i < remainingPatches.size(); i++) {
+        for (unsigned int i = 0; i < remainingPatches.size(); i++)
+        {
 
             //printf("%s << remainingPatches.at(%d) = (%f, %f)\n", __FUNCTION__, i, remainingPatches.at(i).x, remainingPatches.at(i).y);
 
@@ -570,7 +642,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
 
             //printf("distance for point [%d] to corner [%d] = %f\n", i, k, dist);
 
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 //printf("minimum found.\n");
                 minDist = dist;
                 minIndex = i;
@@ -586,8 +659,10 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
         //waitKey(0);
     }
 
-    if (DEBUG_MODE > 3) {
-        for (unsigned int i = 0; i < patchCentres.size(); i++) {
+    if (DEBUG_MODE > 3)
+    {
+        for (unsigned int i = 0; i < patchCentres.size(); i++)
+        {
             printf("%s << patchCentres.at(%d) = (%f, %f)\n", __FUNCTION__, i, patchCentres.at(i).x, patchCentres.at(i).y);
         }
 
@@ -597,7 +672,8 @@ void findCornerPatches(Size imageSize, Size patternSize, int mode, int *XVec, in
 
 }
 
-void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches) {
+void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches)
+{
     int minDist, minIndex, sortedIndex = patchCentres.size();
     double dist;
     vector<Point2f> patchString;  // to store some patches before you splice stuff inside
@@ -607,15 +683,18 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
 
     // LHS -> Get all the edge patches
     //printf("%s << YVec[0] = %d\n", __FUNCTION__, YVec[0]);
-    for (int k = 0; k < YVec[0]; k++) {
+    for (int k = 0; k < YVec[0]; k++)
+    {
         // go through each remaining point
         minDist = 99999999;
 
-        for (unsigned int i = 0; i < remainingPatches.size(); i++) {
+        for (unsigned int i = 0; i < remainingPatches.size(); i++)
+        {
             // get distance to line
             dist = perpDist(patchCentres.at(0), patchCentres.at(2), remainingPatches.at(i));
             //printf("dist (from line) [%d] = %f\n", j, dist);
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 minDist = int(dist);
                 minIndex = i;
             }
@@ -631,15 +710,18 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
     //printf("sizes: %d, %d, %d\n", patchCentres.size(), patchString.size(), remainingPatches.size());
 
     // LHS -> Get the edge patches in order within the string
-    for (int k = 0; k < YVec[0]; k++) {
+    for (int k = 0; k < YVec[0]; k++)
+    {
         // go through each remaining point
         minDist = 99999999;
 
-        for (int i = k; i < YVec[0]; i++) {
+        for (int i = k; i < YVec[0]; i++)
+        {
             // get distance to top left point
             dist = distBetweenPts2f(patchCentres.at(0), patchString.at(i));
             //printf("dist (from line) [%d] = %f\n", j, dist);
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 minDist = int(dist);
                 minIndex = i;
             }
@@ -655,13 +737,15 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
     //printf("sizes: %d, %d, %d\n", patchCentres.size(), patchString.size(), remainingPatches.size());
 
     // Insert patches from string and any intermediate patches
-    if (mode == 0) {
+    if (mode == 0)
+    {
         // Between top left corner and first patch (should be conditional)
         interPoint = meanPoint(patchCentres.at(0), patchString.at(0));
         patchCentres.push_back(interPoint);
 
         // between all internal-edge patches
-        for (int k = 0; k < YVec[0]-1; k++) {
+        for (int k = 0; k < YVec[0]-1; k++)
+        {
             //insertIntermediateElement(patchCentres, 4+2*k-1, 4+2*k, 4+2*k);
             interPoint = meanPoint(patchString.at(0), patchString.at(1));
             transferElement(patchCentres, patchString, 0);
@@ -676,8 +760,11 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
         transferElement(patchCentres, patchString, 0);
         patchCentres.push_back(interPoint);
 
-    } else {
-        for (int k = 0; k < YVec[0]; k++) {
+    }
+    else
+    {
+        for (int k = 0; k < YVec[0]; k++)
+        {
             //printf("A sizes: %d, %d, %d\n", patchCentres.size(), patchString.size(), remainingPatches.size());
 
             transferElement(patchCentres, patchString, 0);
@@ -693,15 +780,18 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
 
     // RHS -> Get all the edge patches
     //printf("%s << YVec[1] = %d\n", __FUNCTION__, YVec[1]);
-    for (int k = 0; k < YVec[1]; k++) {
+    for (int k = 0; k < YVec[1]; k++)
+    {
         // go through each remaining point
         minDist = 99999999;
 
-        for (unsigned int i = 0; i < remainingPatches.size(); i++) {
+        for (unsigned int i = 0; i < remainingPatches.size(); i++)
+        {
             // get distance to line
             dist = perpDist(patchCentres.at(1), patchCentres.at(3), remainingPatches.at(i));
             //printf("dist (from line) [%d] = %f\n", j, dist);
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 minDist = int(dist);
                 minIndex = i;
             }
@@ -715,18 +805,21 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
     //printf("SCHMIMF!!!\n");
 
     // RHS -> Get the edge patches in order
-    for (int k = 0; k < YVec[1]; k++) {
+    for (int k = 0; k < YVec[1]; k++)
+    {
         // go through each remaining point
         minDist = 99999999;
 
-        for (int i = k; i < YVec[1]; i++) {
+        for (int i = k; i < YVec[1]; i++)
+        {
 
             //printf("k = %d; i = %d, size = %d\n", k, i, patchString.size());
 
             // get distance to top left point
             dist = distBetweenPts2f(patchCentres.at(1), patchString.at(i));
             //printf("dist (from line) [%d] = %f\n", j, dist);
-            if (dist < minDist) {
+            if (dist < minDist)
+            {
                 minDist = int(dist);
                 minIndex = i;
             }
@@ -739,13 +832,15 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
 
     //printf("PREFROO!!!!\n");
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         // Between top left corner and first patch (should be conditional)
         interPoint = meanPoint(patchCentres.at(1), patchString.at(0));
         patchCentres.push_back(interPoint);
 
         // between all internal-edge patches
-        for (int k = 0; k < YVec[1]-1; k++) {
+        for (int k = 0; k < YVec[1]-1; k++)
+        {
             //insertIntermediateElement(patchCentres, 4+2*k-1, 4+2*k, 4+2*k);
             interPoint = meanPoint(patchString.at(0), patchString.at(1));
             transferElement(patchCentres, patchString, 0);
@@ -760,8 +855,11 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
         transferElement(patchCentres, patchString, 0);
         patchCentres.push_back(interPoint);
 
-    } else {
-        for (int k = 0; k < YVec[1]; k++) {
+    }
+    else
+    {
+        for (int k = 0; k < YVec[1]; k++)
+        {
             //printf("A sizes: %d, %d, %d\n", patchCentres.size(), patchString.size(), remainingPatches.size());
 
             transferElement(patchCentres, patchString, 0);
@@ -773,12 +871,14 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
 
     //printf("PWOGGG!!!\n");
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
 
         printf("%s << patchCentres.size() = %d\n", __FUNCTION__, patchCentres.size());
         printf("%s << remainingPatches.size() = %d\n", __FUNCTION__, remainingPatches.size());
 
-        for (unsigned int i = 0; i < patchCentres.size(); i++) {
+        for (unsigned int i = 0; i < patchCentres.size(); i++)
+        {
             printf("%s << patchCentres.at(%d) = (%f, %f)\n", __FUNCTION__, i, patchCentres.at(i).x, patchCentres.at(i).y);
         }
 
@@ -786,7 +886,8 @@ void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Po
     }
 }
 
-void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches) {
+void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches)
+{
     // Temporary:
 
     int minDist, minIndex, sortedIndex = patchCentres.size();;
@@ -797,37 +898,49 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
 
     int nRows;
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         nRows = patternSize.height + 1;
-    } else {
+    }
+    else
+    {
         nRows = patternSize.height / 2;
     }
 
     //printf("%s << nRows = %d\n", __FUNCTION__, nRows);
 
     // For each row:
-    for (int r = 0; r < nRows; r++) {
+    for (int r = 0; r < nRows; r++)
+    {
 
         patchString.clear();
 
         //printf("%s << XVec[%d] = %d\n", __FUNCTION__, r, XVec[r]);
 
         // For each patch that is present in that row
-        for (int k = 0; k < XVec[r]; k++) {
+        for (int k = 0; k < XVec[r]; k++)
+        {
             minDist = 99999999;
 
             //printf("%s << row[%d] k = %d, XVec[r] = %d\n", __FUNCTION__, r, k, XVec[r]);
 
-            for (unsigned int i = 0; i < remainingPatches.size(); i++) {
-                if (r == 0) {   // First Row
+            for (unsigned int i = 0; i < remainingPatches.size(); i++)
+            {
+                if (r == 0)     // First Row
+                {
                     dist = perpDist(patchCentres.at(0), patchCentres.at(1), remainingPatches.at(i));
-                } else if (r == (nRows-1)) {  // Last Row
+                }
+                else if (r == (nRows-1))      // Last Row
+                {
                     dist = perpDist(patchCentres.at(2), patchCentres.at(3), remainingPatches.at(i));
-                } else {    // Other Rows
+                }
+                else        // Other Rows
+                {
                     dist = perpDist(patchCentres.at(4+r-1), patchCentres.at(4+nRows-2+r-1), remainingPatches.at(i));
                 }
 
-                if (dist < minDist) {
+                if (dist < minDist)
+                {
                     minDist = int(dist);
                     minIndex = i;
                 }
@@ -840,21 +953,29 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
         //printf("BLEEERGH!!! [%d]\n", r);
 
         // try to sort the patchString elements
-        for (int k = 0; k < XVec[r]; k++) {
+        for (int k = 0; k < XVec[r]; k++)
+        {
             minDist = 99999999;
 
-            for (int i = k; i < XVec[r]; i++) {
-                if (r == 0) {   // First Row
+            for (int i = k; i < XVec[r]; i++)
+            {
+                if (r == 0)     // First Row
+                {
                     dist = distBetweenPts2f(patchCentres.at(0), patchString.at(i));
-                } else if (r == (nRows-1)) {  // Last Row
+                }
+                else if (r == (nRows-1))      // Last Row
+                {
                     dist = distBetweenPts2f(patchCentres.at(2), patchString.at(i));
-                } else {    // Other Rows
+                }
+                else        // Other Rows
+                {
                     dist = distBetweenPts2f(patchCentres.at(4+r-1), patchString.at(i));
                 }
 
                 //printf("%s << row[%d] k = %d, i = %d, dist = %f\n", __FUNCTION__, r, k, i, dist);
 
-                if (dist < minDist) {
+                if (dist < minDist)
+                {
                     minDist = int(dist);
                     minIndex = i;
                 }
@@ -865,7 +986,8 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
             swapElements(patchString, k, minIndex);
         }
 
-        for (int k = 0; k < XVec[r]; k++) {
+        for (int k = 0; k < XVec[r]; k++)
+        {
             minDist = 99999999;
 
             dist = distBetweenPts2f(patchCentres.at(0), patchString.at(k));
@@ -876,19 +998,28 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
 
         //sortedIndex += XVec[r];
 
-        if (mode == 0) {
+        if (mode == 0)
+        {
             // Between left point and first patch (should be conditional)
-            if (r == 0) {   // First Row
+            if (r == 0)     // First Row
+            {
                 interPoint = meanPoint(patchCentres.at(0), patchString.at(0));
                 patchCentres.push_back(interPoint);
-            } else if (r == nRows-1) {  // Last Row
+            }
+            else if (r == nRows-1)      // Last Row
+            {
                 interPoint = meanPoint(patchCentres.at(2), patchString.at(0));
                 patchCentres.push_back(interPoint);
 
-            } else {    // Other Rows
-                if (r % 2) {
+            }
+            else        // Other Rows
+            {
+                if (r % 2)
+                {
 
-                } else {
+                }
+                else
+                {
                     interPoint = meanPoint(patchCentres.at(4+r-1), patchString.at(0));
                     patchCentres.push_back(interPoint);
                 }
@@ -896,7 +1027,8 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
             }
 
 
-            for (int k = 0; k < XVec[r]-1; k++) {
+            for (int k = 0; k < XVec[r]-1; k++)
+            {
                 interPoint = meanPoint(patchString.at(0), patchString.at(1));
                 transferElement(patchCentres, patchString, 0);
                 patchCentres.push_back(interPoint);
@@ -908,18 +1040,26 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
             //printf("size() = %d\n", patchString.size());
 
             // between last on LHS and final point (should also be conditional)
-            if (r == 0) {   // First Row
+            if (r == 0)     // First Row
+            {
                 interPoint = meanPoint(patchCentres.at(1), patchString.at(0));
                 transferElement(patchCentres, patchString, 0);
                 patchCentres.push_back(interPoint);
-            } else if (r == (nRows-1)) {  // Last Row
+            }
+            else if (r == (nRows-1))      // Last Row
+            {
                 interPoint = meanPoint(patchCentres.at(3), patchString.at(0));
                 transferElement(patchCentres, patchString, 0);
                 patchCentres.push_back(interPoint);
-            } else {    // Other Rows
-                if (r % 2) {
+            }
+            else        // Other Rows
+            {
+                if (r % 2)
+                {
                     transferElement(patchCentres, patchString, 0);
-                } else {
+                }
+                else
+                {
                     interPoint = meanPoint(patchCentres.at(4+r-1+nRows-2), patchString.at(0));
                     transferElement(patchCentres, patchString, 0);
                     patchCentres.push_back(interPoint);
@@ -927,8 +1067,11 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
 
             }
 
-        } else {
-            for (int k = 0; k < XVec[r]; k++) {
+        }
+        else
+        {
+            for (int k = 0; k < XVec[r]; k++)
+            {
                 //printf("A sizes: %d, %d, %d\n", patchCentres.size(), patchString.size(), remainingPatches.size());
                 transferElement(patchCentres, patchString, 0);
             }
@@ -944,12 +1087,14 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
     }
     */
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
 
         printf("%s << patchCentres.size() = %d\n", __FUNCTION__, patchCentres.size());
         printf("%s << remainingPatches.size() = %d\n", __FUNCTION__, remainingPatches.size());
 
-        for (unsigned int i = 0; i < patchCentres.size(); i++) {
+        for (unsigned int i = 0; i < patchCentres.size(); i++)
+        {
             //printf("%s << patchCentres.at(%d) = (%d, %d)\n", __FUNCTION__, i, patchCentres.at(i).x, patchCentres.at(i).y);
         }
 
@@ -958,19 +1103,24 @@ void findInteriorPatches(Size patternSize, int mode, int *XVec, int *YVec, vecto
 
 }
 
-void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres, int mode) {
+void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres, int mode)
+{
     // TODO:
     // See the corresponding sections.
 
     int desiredPatchCount, X, Y;
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         desiredPatchCount = (patternSize.width + 1)*(patternSize.height + 1);
-    } else {
+    }
+    else
+    {
         desiredPatchCount = (patternSize.width / 2)*(patternSize.height / 2);
     }
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         printf("%s << Looking for [%d] patches..\n", __FUNCTION__, desiredPatchCount);
         //printf("%s << Configuring for mode = %d\n", __FUNCTION__, mode);
     }
@@ -980,10 +1130,13 @@ void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres
     int YVec[2];
 
     // XVec tells you how many 'black' patches to look for between extremes in that row
-    if (mode == 0) {
+    if (mode == 0)
+    {
         Y = patternSize.height + 1;
         XVec = new int[Y];
-    } else {
+    }
+    else
+    {
         X = patternSize.width/2;
         Y = patternSize.height/2;
         XVec = new int[Y];
@@ -1006,7 +1159,8 @@ void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres
     findInteriorPatches(patternSize, mode, XVec, YVec, patchCentres, remainingPatches);
 
     // Check that there are no remaining patches and that there are the correct no. of patches
-    if (remainingPatches.size() > 0) {
+    if (remainingPatches.size() > 0)
+    {
         printf("%s << ERROR. There are remaining patches when there shouldn't be.\n", __FUNCTION__);
 
         /*
@@ -1015,13 +1169,15 @@ void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres
         */
     }
 
-    if (patchCentres.size() != desiredPatchCount) {
+    if (patchCentres.size() != desiredPatchCount)
+    {
         printf("%s << ERROR. An incorrect number (%d vs %d) of patches have been allocated.\n", __FUNCTION__, patchCentres.size(), desiredPatchCount);
 
         //patchCentres.clear();
 
         // temp for testing:
-        while (patchCentres.size() < (unsigned int)(desiredPatchCount)) {
+        while (patchCentres.size() < (unsigned int)(desiredPatchCount))
+        {
             patchCentres.push_back(Point(0,0));
         }
 
@@ -1037,7 +1193,8 @@ void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres
     delete[] XVec;
 }
 
-void reorderPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres) {
+void reorderPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres)
+{
     // TODO:
     // Nothing much.
 
@@ -1050,10 +1207,13 @@ void reorderPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Poi
 
     //printf("FlAng!!!\n");
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         nRows = patternSize.height + 1;
         nCols = patternSize.width + 1;
-    } else {
+    }
+    else
+    {
         nRows = patternSize.height / 2;
         nCols = patternSize.width / 2;
     }
@@ -1065,40 +1225,54 @@ void reorderPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Poi
     //printf("%s << nRows = %d; nCols = %d; nOffset = %d\n", __FUNCTION__, nRows, nCols, nOffset);
 
     // For each row
-    for (int r = 0; r < nRows; r++) {
+    for (int r = 0; r < nRows; r++)
+    {
         // First element of row
-        if (r == 0) {   // if first row
+        if (r == 0)     // if first row
+        {
             reSortedCorners.push_back(patchCentres.at(0));
-        } else if (r == (nRows-1)) {    // if last row
+        }
+        else if (r == (nRows-1))        // if last row
+        {
             reSortedCorners.push_back(patchCentres.at(2));
-        } else {    // if other row
+        }
+        else        // if other row
+        {
             reSortedCorners.push_back(patchCentres.at(4+r-1));
         }
 
         // In between
-        for (int i = 0; i < nCols-2; i++) {
+        for (int i = 0; i < nCols-2; i++)
+        {
             //printf("%s << row [%d] current Index = %d\n", __FUNCTION__, r, nOffset + r*(nCols-2) + i);
             reSortedCorners.push_back(patchCentres.at(nOffset + r*(nCols-2) + i));
         }
 
 
         // Last element of row
-        if (r == 0) {   // if first row
+        if (r == 0)     // if first row
+        {
             reSortedCorners.push_back(patchCentres.at(1));
-        } else if (r == (nRows-1)) {    // if last row
+        }
+        else if (r == (nRows-1))        // if last row
+        {
             reSortedCorners.push_back(patchCentres.at(3));
-        } else {    // if other row
+        }
+        else        // if other row
+        {
             reSortedCorners.push_back(patchCentres.at(4+nRows-2+r-1));
         }
     }
 
     reSortedCorners.swap(patchCentres);
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
 
         printf("%s << patchCentres.size() = %d\n", __FUNCTION__, patchCentres.size());
 
-        for (unsigned int i = 0; i < patchCentres.size(); i++) {
+        for (unsigned int i = 0; i < patchCentres.size(); i++)
+        {
             //printf("%s << patchCentres.at(%d) = (%d, %d)\n", __FUNCTION__, i, patchCentres.at(i).x, patchCentres.at(i).y);
         }
 
@@ -1107,15 +1281,19 @@ void reorderPatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Poi
 
 }
 
-void debugDisplayPattern(const Mat& image, Size patternSize, Mat& corners, bool mode) {
+void debugDisplayPattern(const Mat& image, Size patternSize, Mat& corners, bool mode)
+{
 
     Mat tmpMat, dispMat;
 
     mode = false;
 
-    if (image.channels() > 1) {
+    if (image.channels() > 1)
+    {
         cvtColor(image, tmpMat, CV_RGB2GRAY);
-    } else {
+    }
+    else
+    {
         image.copyTo(tmpMat);
     }
 
@@ -1125,21 +1303,26 @@ void debugDisplayPattern(const Mat& image, Size patternSize, Mat& corners, bool 
 
     drawChessboardCorners(dispMat, patternSize, corners, mode);
 
-    if (image.cols > 640) {
+    if (image.cols > 640)
+    {
         Mat dispMat2;
         resize(dispMat, dispMat2, Size(0,0), 0.5, 0.5);
         imshow("mainWin", dispMat2);
-    } else {
+    }
+    else
+    {
         imshow("mainWin", dispMat);
     }
     waitKey(0);
 }
 
-bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, int detector) {
+bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, int detector)
+{
     // mode 0: MSER chessboard finder
     // mode 1: MSER mask finder
 
-    if (!checkAcutance()) {
+    if (!checkAcutance())
+    {
         return false;
     }
 
@@ -1149,13 +1332,16 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     vector<vector<Point> > msers;
     findAllPatches(image, patternSize, msers);
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         debugDisplayPatches(image, msers);
     }
 
-    if (msers.size() < desiredPatchQuantity) {
+    if (msers.size() < desiredPatchQuantity)
+    {
         corners.clear();
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Insufficient patches found. Returning.\n", __FUNCTION__);
         }
 
@@ -1168,21 +1354,25 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     bool found = refinePatches(image, patternSize, msers, patchCentres2f, mode);
 
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << Patches found after refinement = %d\n", __FUNCTION__, msers.size());
     }
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         debugDisplayPatches(image, msers);
     }
 
 
 
     // If patches still not found...
-    if (!found) {
+    if (!found)
+    {
         corners.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Correct number of patches not found. Returning.\n", __FUNCTION__);
         }
 
@@ -1193,10 +1383,12 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     found = patternInFrame(image.size(), patchCentres2f);
 
     // If patches still not found...
-    if (!found) {
+    if (!found)
+    {
         corners.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Some patch centres out of range...\n", __FUNCTION__);
         }
 
@@ -1205,17 +1397,20 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
 
     sortPatches(image.size(), patternSize, patchCentres2f, mode);
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat patchCentres_(patchCentres2f);
         debugDisplayPattern(image, cvSize(patchCols, patchRows), patchCentres_);
     }
 
     found = verifyPatches(image.size(), patternSize, patchCentres2f, mode, 0, 1000);
 
-    if (!found) {
+    if (!found)
+    {
         corners.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Pattern verification failed. Returning.\n", __FUNCTION__);
         }
 
@@ -1225,7 +1420,8 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     // Correct patch centres (using histogram equalisation, single-frame calibration)
     correctPatchCentres(image, patternSize, patchCentres2f, mode);
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat patchCentres_(patchCentres2f);
         debugDisplayPattern(image, cvSize(patchCols, patchRows), patchCentres_);
     }
@@ -1236,10 +1432,12 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     // refineCornerPositions
     //fixFourCorners(image, corners, patternSize);
 
-    if (!found) {
+    if (!found)
+    {
         corners.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Patch corner search failed. Returning.\n", __FUNCTION__);
         }
 
@@ -1249,17 +1447,20 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     found = patternInFrame(image.size(), patchCentres2f);
 
     // If patches still not found...
-    if (!found) {
+    if (!found)
+    {
         corners.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Some corners out of range...\n", __FUNCTION__);
         }
 
         return false;
     }
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat cornersMat(corners);
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersMat);
     }
@@ -1267,10 +1468,12 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     return found;
 }
 
-void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, vector<Point2f>& vCentres, vector<Point2f>& vCorners) {
+void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, vector<Point2f>& vCentres, vector<Point2f>& vCorners)
+{
 
-    if (DEBUG_MODE > 2) {
-            printf("%s << Entered function...\n", __FUNCTION__);
+    if (DEBUG_MODE > 2)
+    {
+        printf("%s << Entered function...\n", __FUNCTION__);
     }
 
     double minDimension = findMinimumSeparation(vCentres);
@@ -1281,9 +1484,12 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
 
     Mat imGrey;
 
-    if (image.channels() > 1) {
+    if (image.channels() > 1)
+    {
         cvtColor(image, imGrey, CV_RGB2GRAY);
-    } else {
+    }
+    else
+    {
         image.copyTo(imGrey);
     }
 
@@ -1295,8 +1501,10 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
     vector<Point2f> fullCentroidGrid;
 
     // Sets up all centroid grid points
-    for (int i = 0; i < Y; i++) {
-        for (int j = 0; j < X; j++) {
+    for (int i = 0; i < Y; i++)
+    {
+        for (int j = 0; j < X; j++)
+        {
             Point2f pt;
 
             pt = Point2f(j, i);
@@ -1308,18 +1516,28 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
     vector<Point2f> fullCornerGrid;
 
     // Sets up all corner grid points
-    for (int i = 0; i < Y; i++) {
-        for (int j = 0; j < X; j++) {
-            for (int k = 0; k < 4; k++) {
+    for (int i = 0; i < Y; i++)
+    {
+        for (int j = 0; j < X; j++)
+        {
+            for (int k = 0; k < 4; k++)
+            {
                 Point2f pt;
 
-                if (k == 0) {
+                if (k == 0)
+                {
                     pt = Point2f(j-0.25, i-0.25);
-                } else if (k == 1) {
+                }
+                else if (k == 1)
+                {
                     pt = Point2f(j+0.25, i-0.25);
-                } else if (k == 2) {
+                }
+                else if (k == 2)
+                {
                     pt = Point2f(j-0.25, i+0.25);
-                } else if (k == 3) {
+                }
+                else if (k == 3)
+                {
                     pt = Point2f(j+0.25, i+0.25);
                 }
 
@@ -1337,7 +1555,7 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
     Point2f *neighbourhoodArray;
     Point2f* arrangementArray;
 
-	Mat homography;
+    Mat homography;
 
     // Depending on the location of the patch, a different number of neighbouring patches
     // are used to determine an approximate homography
@@ -1346,24 +1564,32 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
     int index = 0;
 
     // Initial estimate of all corners
-    for (int i = 0; i < Y; i++) {
-        for (int j = 0; j < X; j++) {
+    for (int i = 0; i < Y; i++)
+    {
+        for (int j = 0; j < X; j++)
+        {
 
-            if (0) { //((i == 0) || (i == Y-1) || (j == 0) || (j == X-1)) {
-                for (int k = 0; k < 4; k++) {
+            if (0)   //((i == 0) || (i == Y-1) || (j == 0) || (j == X-1)) {
+            {
+                for (int k = 0; k < 4; k++)
+                {
                     newCorners.push_back(Point2f(0.0, 0.0));    // skip corners and edges
                     index++;
                 }
 
-            } else {
+            }
+            else
+            {
                 patchNeighbourhood.clear();
                 patchArrangement.clear();
 
                 neighbourhoodCount = 0;
 
                 // For each neighbourhood patch
-                for (int k = max(0, i-1); k < min(Y, i+2); k++) {           // try to go 1 up and down
-                    for (int l = max(0, j-1); l < min(X, j+2); l++) {       // try to go 1 left and right
+                for (int k = max(0, i-1); k < min(Y, i+2); k++)             // try to go 1 up and down
+                {
+                    for (int l = max(0, j-1); l < min(X, j+2); l++)         // try to go 1 left and right
+                    {
                         // Add patch to patch vector
                         patchNeighbourhood.push_back(vCentres.at(k*X+l));
                         // Add co-ordinate to arbitrary map vector
@@ -1389,8 +1615,10 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
                 cornerArrangement.clear();
 
                 // define arbitrary corner co-ordinate
-                for (int k = 0; k < 2; k++) {
-                    for (int l = 0; l < 2; l++) {
+                for (int k = 0; k < 2; k++)
+                {
+                    for (int l = 0; l < 2; l++)
+                    {
                         cornerArrangement.push_back(Point2f((float)(j-0.25+0.5*l), (float)(i-0.25+0.5*k)));
                     }
                 }
@@ -1401,7 +1629,8 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
 
                 perspectiveTransform(tmpMat1, cornerLocs, homography);
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     //printf("%s << adding..\n", __FUNCTION__);
                     newCorners.push_back(Point2f(cornerLocs.at<Vec3f>(k,0)[0], cornerLocs.at<Vec3f>(k,0)[1]));
                 }
@@ -1426,7 +1655,8 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
     //cornerSubPix(imGrey, newCorners, Size(correctionDistance, correctionDistance), Size(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 15, 0.1));
 
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         vector<Point2f> redistorted;
         Mat cornersForDisplay(newCorners);
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
@@ -1439,9 +1669,11 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
 
 }
 
-void addToBinMap(Mat& binMap, cv::vector<Point2f>& cornerSet, Size imSize) {
+void addToBinMap(Mat& binMap, cv::vector<Point2f>& cornerSet, Size imSize)
+{
     int x, y;
-    for (unsigned int i = 0; i < cornerSet.size(); i++) {
+    for (unsigned int i = 0; i < cornerSet.size(); i++)
+    {
         // Determine Bin Index for this specific corner
         x = (int)((cornerSet.at(i).x/(double(imSize.width)))*binMap.cols);
         y = (int)((cornerSet.at(i).y/(double(imSize.height)))*binMap.rows);
@@ -1451,7 +1683,8 @@ void addToBinMap(Mat& binMap, cv::vector<Point2f>& cornerSet, Size imSize) {
     }
 }
 
-void prepForDisplay(const Mat& distributionMap, Mat& distributionDisplay) {
+void prepForDisplay(const Mat& distributionMap, Mat& distributionDisplay)
+{
 
     Mat distMapCpy(distributionMap.size(), CV_8UC1);
 
@@ -1468,7 +1701,8 @@ void prepForDisplay(const Mat& distributionMap, Mat& distributionDisplay) {
     return;
 }
 
-void addToRadialDistribution(double *radialDistribution, cv::vector<Point2f>& cornerSet, Size imSize) {
+void addToRadialDistribution(double *radialDistribution, cv::vector<Point2f>& cornerSet, Size imSize)
+{
 
     Point2f center((float)((double(imSize.height-1))/2), (float)((double(imSize.width-1))/2));
     double dist, maxDist;
@@ -1480,12 +1714,14 @@ void addToRadialDistribution(double *radialDistribution, cv::vector<Point2f>& co
     // needs to be until after you've calibrated..
     maxDist = pow(pow(double(imSize.height)/2, 2) + pow(double(imSize.width)/2, 2), 0.5);
 
-    for (unsigned int i = 0; i < cornerSet.size(); i++) {
+    for (unsigned int i = 0; i < cornerSet.size(); i++)
+    {
 
         dist = distBetweenPts2f(center, cornerSet.at(i));
 
         // Only add the point to the distribution if it's within the desired range
-        if (dist < maxDist) {
+        if (dist < maxDist)
+        {
             index = int((dist/maxDist)*(RADIAL_LENGTH-0.00001));
             radialDistribution[index]++;
         }
@@ -1494,8 +1730,10 @@ void addToRadialDistribution(double *radialDistribution, cv::vector<Point2f>& co
 
 }
 
-void addToDistributionMap(Mat& distributionMap, vector<Point2f>& corners) {
-    for (unsigned int i = 0; i < corners.size(); i++) {
+void addToDistributionMap(Mat& distributionMap, vector<Point2f>& corners)
+{
+    for (unsigned int i = 0; i < corners.size(); i++)
+    {
         distributionMap.at<unsigned char>((int)corners.at(i).y, (int)corners.at(i).x) += (unsigned char) 1;
     }
 }
@@ -1504,7 +1742,8 @@ double obtainSetScore(Mat& distributionMap,
                       Mat& binMap,
                       Mat& gaussianMat,
                       cv::vector<Point2f>& cornerSet,
-                      double *radialDistribution) {
+                      double *radialDistribution)
+{
     double score = 1.0;
     double mean = 0.0, variance = 0.0;
     int count = 0;
@@ -1519,7 +1758,8 @@ double obtainSetScore(Mat& distributionMap,
 
     cv::vector<Point> fullHull, simplifiedHull;
 
-    for (unsigned int i = 0; i < cornerSet.size(); i++) {
+    for (unsigned int i = 0; i < cornerSet.size(); i++)
+    {
         fullHull.push_back(Point(int(cornerSet.at(i).x), int(cornerSet.at(i).y)));
     }
 
@@ -1548,8 +1788,10 @@ double obtainSetScore(Mat& distributionMap,
     centrality = 1 - (centrality / (distributionMap.size().height/2));
 
     // Calculate mean value per bin for spreadiness
-    for (int i = 0; i < binMapCpy.size().width; i++) {
-        for (int j = 0; j < binMapCpy.size().height; j++) {
+    for (int i = 0; i < binMapCpy.size().width; i++)
+    {
+        for (int j = 0; j < binMapCpy.size().height; j++)
+        {
             mean += binMapCpy.at<int>(j, i);
         }
     }
@@ -1561,7 +1803,8 @@ double obtainSetScore(Mat& distributionMap,
     // Make copy of radial distribution
     double *radialDistCpy;
     radialDistCpy = new double[RADIAL_LENGTH];
-    for (int i = 0; i < RADIAL_LENGTH; i++) {
+    for (int i = 0; i < RADIAL_LENGTH; i++)
+    {
         radialDistCpy[i] = radialDistribution[i];
     }
 
@@ -1574,7 +1817,8 @@ double obtainSetScore(Mat& distributionMap,
 
     // Calculate cumulative Distribution and mean (avg points per quantization bin)
     //printf("debugging radialCumulative: ");
-    for (int i = 0; i < RADIAL_LENGTH; i++) {
+    for (int i = 0; i < RADIAL_LENGTH; i++)
+    {
         radialMean += radialDistCpy[i];
         radialCumulative[i] = radialMean;
         //printf("%f\t", radialCumulative[i]);
@@ -1585,7 +1829,8 @@ double obtainSetScore(Mat& distributionMap,
 
     // Calculate the variation from an ideal/uniform distribution with the new pointset included
     //printf("debugging radialVariance: ");
-    for (int i = 0; i < RADIAL_LENGTH; i++) {
+    for (int i = 0; i < RADIAL_LENGTH; i++)
+    {
         desiredCount = double(i+1)*radialMean;
         // Variance is the sum of the differences of where the cumulative count is for each bin, and where it
         // should be if it's a uniform distribution over the full radial range
@@ -1616,16 +1861,18 @@ double obtainSetScore(Mat& distributionMap,
     // Add the test points to a double precision copy of the distribution map
     Mat distMapCpy(distributionMap.size(), CV_64FC1);
 
-    for (int i = 0; i < distMapCpy.size().width; i++) {
-        for (int j = 0; j < distMapCpy.size().height; j++) {
+    for (int i = 0; i < distMapCpy.size().width; i++)
+    {
+        for (int j = 0; j < distMapCpy.size().height; j++)
+        {
             distMapCpy.at<double>(j,i) += double(distributionMap.at<unsigned char>(j,i));
         }
     }
 
-        //printf("%s << DEBUG %d\n", __FUNCTION__, 5);
+    //printf("%s << DEBUG %d\n", __FUNCTION__, 5);
 
     // Massively blur it
-            // or could you just convolve it with optimum distribution to find correlation?
+    // or could you just convolve it with optimum distribution to find correlation?
 
     // Quantize it to same bins as gassian map
     // Then compare its variance with the gaussian distribution map
@@ -1638,8 +1885,10 @@ double obtainSetScore(Mat& distributionMap,
     // Scale gaussian mat up
     gaussianMat *= mean;
 
-    for (int i = 0; i < binMapCpy.size().width; i++) {
-        for (int j = 0; j < binMapCpy.size().height; j++) {
+    for (int i = 0; i < binMapCpy.size().width; i++)
+    {
+        for (int j = 0; j < binMapCpy.size().height; j++)
+        {
             variance += pow((double(binMapCpy.at<int>(j, i)) - gaussianMat.at<double>(j, i)), 2);
         }
     }
@@ -1672,7 +1921,8 @@ double obtainSetScore(Mat& distributionMap,
     delete[] radialDistCpy;
     delete[] radialCumulative;
 
-    if (score < 0) {
+    if (score < 0)
+    {
         printf("%s << ERROR: Negative score acquired. Returning.\n", __FUNCTION__);
         return -1;
     }
@@ -1680,10 +1930,12 @@ double obtainSetScore(Mat& distributionMap,
     return score;
 }
 
-bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, int mode, int detector) {
+bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, int mode, int detector)
+{
 
-    if (DEBUG_MODE > 2) {
-            printf("%s << Entered function...\n", __FUNCTION__);
+    if (DEBUG_MODE > 2)
+    {
+        printf("%s << Entered function...\n", __FUNCTION__);
     }
 
     Mat inputDisp;
@@ -1696,7 +1948,8 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
 
     //estimateUnknownPositions(XXX, vvOriginalCentres.at(0), XXX, cornerEstimates);
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat cornersForDisplay(cornerEstimates);
         printf("%s << Step 3: cornerEstimates.size() = %d\n", __FUNCTION__, cornerEstimates.size());
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
@@ -1714,7 +1967,8 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
 
     //correctInnerCorners(innerCornerEstimates, cornerEstimates, )
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         Mat cornersForDisplay(corners);
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
     }
@@ -1725,7 +1979,8 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
 
     retVal = verifyCorners(image.size(), patternSize, corners, 0, 1000);
 
-    if (!retVal) {
+    if (!retVal)
+    {
         corners.clear();
         return retVal;
     }
@@ -1735,7 +1990,8 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     refineCornerPositions(image, patternSize, corners);
     sortCorners(image.size(), patternSize, corners);
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         Mat cornersForDisplay(corners);
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
     }
@@ -1745,7 +2001,8 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     //printf("%s << patternSize = (%d, %d)\n", __FUNCTION__, patternSize.width, patternSize.height);
     retVal = verifyCorners(image.size(), patternSize, corners, 0, 1000);
 
-    if (!retVal) {
+    if (!retVal)
+    {
         corners.clear();
     }
 
@@ -1753,25 +2010,31 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
 
 }
 
-bool verifyCorners(Size imSize, Size patternSize, vector<Point2f>& patternPoints, double minDist, double maxDist) {
+bool verifyCorners(Size imSize, Size patternSize, vector<Point2f>& patternPoints, double minDist, double maxDist)
+{
     vector<Point2f> simplePoints;
 
-    for (unsigned int i = 0; i < patternPoints.size(); i++) {
+    for (unsigned int i = 0; i < patternPoints.size(); i++)
+    {
         simplePoints.push_back(Point(patternPoints.at(i).x, patternPoints.at(i).y));
     }
 
     return verifyPattern(imSize, patternSize, simplePoints, minDist, maxDist);
 }
 
-void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners) {
+void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners)
+{
 
     Mat imGrey;
 
     vector<Point2f> targetCorner;
 
-    if (image.channels() > 1) {
+    if (image.channels() > 1)
+    {
         cvtColor(image, imGrey, CV_RGB2GRAY);
-    } else {
+    }
+    else
+    {
         image.copyTo(imGrey);
     }
 
@@ -1791,18 +2054,28 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     //cin.get();
 
     // Sets up all corner grid points
-    for (int i = 0; i < Y; i++) {
-        for (int j = 0; j < X; j++) {
-            for (int k = 0; k < 4; k++) {
+    for (int i = 0; i < Y; i++)
+    {
+        for (int j = 0; j < X; j++)
+        {
+            for (int k = 0; k < 4; k++)
+            {
                 Point2f pt;
 
-                if (k == 0) {
+                if (k == 0)
+                {
                     pt = Point2f(j-0.25, i-0.25);
-                } else if (k == 1) {
+                }
+                else if (k == 1)
+                {
                     pt = Point2f(j+0.25, i-0.25);
-                } else if (k == 2) {
+                }
+                else if (k == 2)
+                {
                     pt = Point2f(j-0.25, i+0.25);
-                } else if (k == 3) {
+                }
+                else if (k == 3)
+                {
                     pt = Point2f(j+0.25, i+0.25);
                 }
 
@@ -1820,7 +2093,7 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     Point2f *neighbourhoodArray;
     Point2f* arrangementArray;
 
-	Mat homography;
+    Mat homography;
 
     // Depending on the location of the patch, a different number of neighbouring patches
     // are used to determine an approximate homography
@@ -1832,7 +2105,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
     newCorners.assign(vCorners.begin(), vCorners.end());
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         vector<Point2f> redistorted;
         Mat cornersForDisplay(newCorners);
         printf("%s << Initial corners.\n", __FUNCTION__);
@@ -1843,11 +2117,14 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     index = 0;
 
     // just edges
-    for (int i = 0; i < 2*Y; i++) {
-        for (int j = 0; j < 2*X; j++) {
+    for (int i = 0; i < 2*Y; i++)
+    {
+        for (int j = 0; j < 2*X; j++)
+        {
             //if (((i != 0) && (i != 2*Y-1) && (j != 0) && (j != 2*X-1)) || (((i == 0) || (i == 2*Y-1)) && ((j == 0) || (j == 2*X-1)))) {
 
-            if (((i == 0) || (i == 2*Y-1) || (j == 0) || (j == 2*X-1)) && !(((i < 2) || (i > 2*Y-3)) && ((j < 2) || (j > 2*X-3)))) {
+            if (((i == 0) || (i == 2*Y-1) || (j == 0) || (j == 2*X-1)) && !(((i < 2) || (i > 2*Y-3)) && ((j < 2) || (j > 2*X-3))))
+            {
 
                 patchNeighbourhood.clear();
                 patchArrangement.clear();
@@ -1862,31 +2139,39 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
                 int z[4], c[4];
 
-                if (i == 0) {               // For top edge
-                    	c[0] = index+2*X-1;
-			c[1] = index+2*X+1;
-			c[2] = index+4*X-1;
-			c[3] = index+4*X+1;
-                } else if (i == 2*Y-1) {    // For bottom edge
-                    	c[0] = index-4*X-1;
-			c[1] = index-4*X+1;
-			c[2] = index-2*X-1;
-			c[3] = index-2*X+1;
-                } else if (j == 0) {        // For left edge
-                    	c[0] = index-2*X+1;
-			c[1] = index-2*X+2;
-			c[2] = index+2*X+1;
-			c[3] = index+2*X+2;
-                } else if (j == 2*X-1) {    // For right edge
-                    	c[0] = index-2*X-2;
-			c[1] = index-2*X-1;
-			c[2] = index+2*X-2;
-			c[3] = index+2*X-1;
+                if (i == 0)                 // For top edge
+                {
+                    c[0] = index+2*X-1;
+                    c[1] = index+2*X+1;
+                    c[2] = index+4*X-1;
+                    c[3] = index+4*X+1;
+                }
+                else if (i == 2*Y-1)        // For bottom edge
+                {
+                    c[0] = index-4*X-1;
+                    c[1] = index-4*X+1;
+                    c[2] = index-2*X-1;
+                    c[3] = index-2*X+1;
+                }
+                else if (j == 0)            // For left edge
+                {
+                    c[0] = index-2*X+1;
+                    c[1] = index-2*X+2;
+                    c[2] = index+2*X+1;
+                    c[3] = index+2*X+2;
+                }
+                else if (j == 2*X-1)        // For right edge
+                {
+                    c[0] = index-2*X-2;
+                    c[1] = index-2*X-1;
+                    c[2] = index+2*X-2;
+                    c[3] = index+2*X-1;
                 }
 
                 int m, n;
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     // row
                     m = c[k] / (2*X);
                     // col
@@ -1902,7 +2187,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
                 //cin.get();
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     //printf("%s << z[%d] = %f\n", __FUNCTION__, k, z[k]);
                     patchNeighbourhood.push_back(newCorners.at(z[k]));
                     patchArrangement.push_back(fullCornerGrid.at(z[k]));
@@ -1956,7 +2242,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     cornerSubPix(imGrey, newCorners, Size(correctionDistance, correctionDistance), Size(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 15, 0.1));
     */
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         vector<Point2f> redistorted;
         Mat cornersForDisplay(newCorners);
         printf("%s << Refinement of edges.\n", __FUNCTION__);
@@ -1967,11 +2254,14 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     index = 0;
 
     // second last ring
-    for (int i = 0; i < 2*Y; i++) {
-        for (int j = 0; j < 2*X; j++) {
+    for (int i = 0; i < 2*Y; i++)
+    {
+        for (int j = 0; j < 2*X; j++)
+        {
             //if (((i != 0) && (i != 2*Y-1) && (j != 0) && (j != 2*X-1)) || (((i == 0) || (i == 2*Y-1)) && ((j == 0) || (j == 2*X-1)))) {
 
-            if ((((i == 1) || (i == 2*Y-2)) && ((j == 0) || (j == 2*X-1))) || (((i == 0) || (i == 2*Y-1)) && ((j == 1) || (j == 2*X-2)))) {
+            if ((((i == 1) || (i == 2*Y-2)) && ((j == 0) || (j == 2*X-1))) || (((i == 0) || (i == 2*Y-1)) && ((j == 1) || (j == 2*X-2))))
+            {
 
                 patchNeighbourhood.clear();
                 patchArrangement.clear();
@@ -1989,52 +2279,68 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
                 // c = {0, 0, 0, 0};
 
 
-                if ((i == 0) && (j == 1)) {                                 // top left (top)
-                    	c[0] = index+1;
-			c[1] = index+2*X;
-			c[2] = index+2*X+2;
-			c[3] = index+4*X+1;     // c = {index+1, index+2*X, index+2*X+2, index+4*X+2};
-                } else if ((i == 1) && (j == 0)) {                          // top left (bot)
-                    	c[0] = index+1;
-			c[1] = index+2*X;
-			c[2] = index+2*X+2;
-			c[3] = index+4*X+1;
-                } else if ((i == 0) && (j == 2*X-2)) {                      // top right (top)
-                    	c[0] = index-1;
-			c[1] = index+2*X-2;
-			c[2] = index+2*X;
-			c[3] = index+4*X-1;
-                } else if ((i == 1) && (j == 2*X-1)) {                      // top right (bot)
-                    	c[0] = index-1;
-			c[1] = index+2*X-2;
-			c[2] = index+2*X;
-			c[3] = index+4*X-1;     // c = {index-1, index+2*X-2, index+2*X-1, index+4*X-2};
-                } else if ((i == 2*Y-2) && (j == 0)) {                      // bottom left (top)
-                    	c[0] = index-4*X+1;
-			c[1] = index-2*X;
-			c[2] = index-2*X+2;
-			c[3] = index+1;
-                } else if ((i == 2*Y-1) && (j == 1)) {                      // bot left (bot)
-                    	c[0] = index-4*X+1;
-			c[1] = index-2*X;
-			c[2] = index-2*X+2;
-			c[3] = index+1;     // c = {index-4*X+1, index-4*X+2, index-2*X, index-2*X+1};
-                } else if ((i == 2*Y-2) && (j == 2*X-1)) {                  // bottom right (top)
-                    	c[0] = index-4*X-1;
-			c[1] = index-2*X-2;
-			c[2] = index-2*X;
-			c[3] = index-1;
-                } else if ((i == 2*Y-1) && (j == 2*X-2)) {                  // bot right (bot)
-                    	c[0] = index-4*X-1;
-			c[1] = index-2*X-2;
-			c[2] = index-2*X;
-			c[3] = index-1;     // c = {index-4*X-2, index-4*X-1, index-2*X-1, index-2*X};
+                if ((i == 0) && (j == 1))                                   // top left (top)
+                {
+                    c[0] = index+1;
+                    c[1] = index+2*X;
+                    c[2] = index+2*X+2;
+                    c[3] = index+4*X+1;     // c = {index+1, index+2*X, index+2*X+2, index+4*X+2};
+                }
+                else if ((i == 1) && (j == 0))                              // top left (bot)
+                {
+                    c[0] = index+1;
+                    c[1] = index+2*X;
+                    c[2] = index+2*X+2;
+                    c[3] = index+4*X+1;
+                }
+                else if ((i == 0) && (j == 2*X-2))                          // top right (top)
+                {
+                    c[0] = index-1;
+                    c[1] = index+2*X-2;
+                    c[2] = index+2*X;
+                    c[3] = index+4*X-1;
+                }
+                else if ((i == 1) && (j == 2*X-1))                          // top right (bot)
+                {
+                    c[0] = index-1;
+                    c[1] = index+2*X-2;
+                    c[2] = index+2*X;
+                    c[3] = index+4*X-1;     // c = {index-1, index+2*X-2, index+2*X-1, index+4*X-2};
+                }
+                else if ((i == 2*Y-2) && (j == 0))                          // bottom left (top)
+                {
+                    c[0] = index-4*X+1;
+                    c[1] = index-2*X;
+                    c[2] = index-2*X+2;
+                    c[3] = index+1;
+                }
+                else if ((i == 2*Y-1) && (j == 1))                          // bot left (bot)
+                {
+                    c[0] = index-4*X+1;
+                    c[1] = index-2*X;
+                    c[2] = index-2*X+2;
+                    c[3] = index+1;     // c = {index-4*X+1, index-4*X+2, index-2*X, index-2*X+1};
+                }
+                else if ((i == 2*Y-2) && (j == 2*X-1))                      // bottom right (top)
+                {
+                    c[0] = index-4*X-1;
+                    c[1] = index-2*X-2;
+                    c[2] = index-2*X;
+                    c[3] = index-1;
+                }
+                else if ((i == 2*Y-1) && (j == 2*X-2))                      // bot right (bot)
+                {
+                    c[0] = index-4*X-1;
+                    c[1] = index-2*X-2;
+                    c[2] = index-2*X;
+                    c[3] = index-1;     // c = {index-4*X-2, index-4*X-1, index-2*X-1, index-2*X};
                 }
 
 
                 int m, n;
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     // row
                     m = c[k] / (2*X);
                     // col
@@ -2050,7 +2356,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
                 //cin.get();
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     //printf("%s << z[%d] = %f\n", __FUNCTION__, k, z[k]);
                     patchNeighbourhood.push_back(newCorners.at(z[k]));
                     patchArrangement.push_back(fullCornerGrid.at(z[k]));
@@ -2107,7 +2414,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
     */
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         vector<Point2f> redistorted;
         Mat cornersForDisplay(newCorners);
         printf("%s << Refinement of psuedocorners.\n", __FUNCTION__);
@@ -2117,11 +2425,14 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     index = 0;
 
     // final corners
-    for (int i = 0; i < 2*Y; i++) {
-        for (int j = 0; j < 2*X; j++) {
+    for (int i = 0; i < 2*Y; i++)
+    {
+        for (int j = 0; j < 2*X; j++)
+        {
             //if (((i != 0) && (i != 2*Y-1) && (j != 0) && (j != 2*X-1)) || (((i == 0) || (i == 2*Y-1)) && ((j == 0) || (j == 2*X-1)))) {
 
-            if (((i == 0) || (i == 2*Y-1)) && ((j == 0) || (j == 2*X-1))) {
+            if (((i == 0) || (i == 2*Y-1)) && ((j == 0) || (j == 2*X-1)))
+            {
 
                 patchNeighbourhood.clear();
                 patchArrangement.clear();
@@ -2139,32 +2450,40 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
                 // c = {0, 0, 0, 0};
 
 
-                if ((i == 0) && (j == 0)) {                                 // top left
-                    	c[0] = index+1;
-			c[1] = index+2*X;
-			c[2] = index+2*X+2;
-			c[3] = index+4*X+1;
-                } else if ((i == 0) && (j == 2*X-1)) {                      // top right
-                    	c[0] = index-1;
-			c[1] =index+2*X-2;
-			c[2] = index+2*X;
-			c[3] = index+4*X-1;
-                } else if ((i == 2*Y-1) && (j == 0)) {                      // bot left
-                    	c[0] = index-4*X+1;
-			c[1] = index-2*X;
-			c[2] = index-2*X+2;
-			c[3] = index+1;
-                } else if ((i == 2*Y-1) && (j == 2*X-1)) {                  // bot right
-                    	c[0] = index-4*X-1;
-			c[1] = index-2*X-2;
-			c[2] = index-2*X;
-			c[3] = index-1;
+                if ((i == 0) && (j == 0))                                   // top left
+                {
+                    c[0] = index+1;
+                    c[1] = index+2*X;
+                    c[2] = index+2*X+2;
+                    c[3] = index+4*X+1;
+                }
+                else if ((i == 0) && (j == 2*X-1))                          // top right
+                {
+                    c[0] = index-1;
+                    c[1] =index+2*X-2;
+                    c[2] = index+2*X;
+                    c[3] = index+4*X-1;
+                }
+                else if ((i == 2*Y-1) && (j == 0))                          // bot left
+                {
+                    c[0] = index-4*X+1;
+                    c[1] = index-2*X;
+                    c[2] = index-2*X+2;
+                    c[3] = index+1;
+                }
+                else if ((i == 2*Y-1) && (j == 2*X-1))                      // bot right
+                {
+                    c[0] = index-4*X-1;
+                    c[1] = index-2*X-2;
+                    c[2] = index-2*X;
+                    c[3] = index-1;
                 }
 
 
                 int m, n;
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     // row
                     m = c[k] / (2*X);
                     // col
@@ -2180,7 +2499,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
                 //cin.get();
 
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     //printf("%s << z[%d] = %f\n", __FUNCTION__, k, z[k]);
                     patchNeighbourhood.push_back(newCorners.at(z[k]));
                     patchArrangement.push_back(fullCornerGrid.at(z[k]));
@@ -2234,7 +2554,8 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
     cornerSubPix(imGrey, newCorners, Size(correctionDistance/2, correctionDistance/2), Size(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 15, 0.1));
     */
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         vector<Point2f> redistorted;
         Mat cornersForDisplay(newCorners);
         printf("%s << Refinement of true corners.\n", __FUNCTION__);
@@ -2249,13 +2570,16 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
 }
 
-void groupPointsInQuads(Size patternSize, vector<Point2f>& corners) {
+void groupPointsInQuads(Size patternSize, vector<Point2f>& corners)
+{
     vector<Point2f> newCorners;
 
     int id1, id2, id3, id4;
 
-    for (int i = 0; i < patternSize.height/2; i++) {
-        for (int j = 0; j < patternSize.width/2; j++) {
+    for (int i = 0; i < patternSize.height/2; i++)
+    {
+        for (int j = 0; j < patternSize.width/2; j++)
+        {
 
             id1 = 2*(i*patternSize.width+j);
             id2 = 2*(i*patternSize.width+j)+1;
@@ -2273,279 +2597,297 @@ void groupPointsInQuads(Size patternSize, vector<Point2f>& corners) {
     corners.assign(newCorners.begin(), newCorners.end());
 }
 
-int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst, Size patternSize, int detector, int searchDist) {
-	//goodFeaturesToTrack(image, retCorner, 1, 0.05, 1.0, mask, 3, true, 0.04);
-	int successfulMappings = 0;
+int findBestCorners(const Mat& image, vector<Point2f>& src, vector<Point2f>& dst, Size patternSize, int detector, int searchDist)
+{
+    //goodFeaturesToTrack(image, retCorner, 1, 0.05, 1.0, mask, 3, true, 0.04);
+    int successfulMappings = 0;
 
-	double maxDist = 0.0;
+    double maxDist = 0.0;
 
-	vector<Point2f> foundCorners;
-	int maxCorners = 4*src.size();
+    vector<Point2f> foundCorners;
+    int maxCorners = 4*src.size();
 
-	unsigned int *srcBestMatches;
-	unsigned int foundBestMatch;
-	double bestDist, currDist;
+    unsigned int *srcBestMatches;
+    unsigned int foundBestMatch;
+    double bestDist, currDist;
 
     /*
-	Mat inputDisp;
-	image.copyTo(inputDisp);
+    Mat inputDisp;
+    image.copyTo(inputDisp);
     drawChessboardCorners(inputDisp, cvSize(12, 8), Mat(src), true);
     imshow("debugWin", inputDisp);
     waitKey(500);
     */
 
-	vector<KeyPoint> keypoints;
+    vector<KeyPoint> keypoints;
 
     //printf("%s << About to grayify.\n", __FUNCTION__);
 
 
-	Mat imGrey, tmpMat;
-	if (image.channels() > 1) {
-		cvtColor(image, imGrey, CV_RGB2GRAY);
-	} else {
-		image.copyTo(imGrey);
-	}
+    Mat imGrey, tmpMat;
+    if (image.channels() > 1)
+    {
+        cvtColor(image, imGrey, CV_RGB2GRAY);
+    }
+    else
+    {
+        image.copyTo(imGrey);
+    }
 
 
-	Mat imageCopy(480, 640, CV_8UC1);
-	Mat inputDisp;
+    Mat imageCopy(480, 640, CV_8UC1);
+    Mat inputDisp;
 
 #ifdef _WIN32
     /*
-	qacdtl::group_array<double> corners;
-	vil_image_view<vxl_byte> vByteImage(imGrey.cols, imGrey.rows);
-	vil_image_view<double> vDblImage(imGrey.cols, imGrey.rows);
+    qacdtl::group_array<double> corners;
+    vil_image_view<vxl_byte> vByteImage(imGrey.cols, imGrey.rows);
+    vil_image_view<double> vDblImage(imGrey.cols, imGrey.rows);
     */
 #endif
 
-	//printf("%s << Entered function.\n", __FUNCTION__);
+    //printf("%s << Entered function.\n", __FUNCTION__);
 
-    switch (detector) {
-                    // ==================================================
-        case 0:     //        NO ACTUAL CORNER DETECTOR USED
-                    // ==================================================
+    switch (detector)
+    {
+        // ==================================================
+    case 0:     //        NO ACTUAL CORNER DETECTOR USED
+        // ==================================================
 
-			dst.assign(src.begin(), src.end());
-			return 0;
+        dst.assign(src.begin(), src.end());
+        return 0;
 
-                    // ==================================================
-        case 1:     //        BASIC HARRIS DETECTOR
-                    // ==================================================
+        // ==================================================
+    case 1:     //        BASIC HARRIS DETECTOR
+        // ==================================================
 
-			// Blur
-			//GaussianBlur(imGrey, tmpMat, Size(21,21), 5.0);
-			//tmpMat.copyTo(imGrey);
+        // Blur
+        //GaussianBlur(imGrey, tmpMat, Size(21,21), 5.0);
+        //tmpMat.copyTo(imGrey);
 
-			// Sets maximum number of corners to 4 times the actual number
-			goodFeaturesToTrack(imGrey, foundCorners, maxCorners, 0.001, 5.0, Mat(), 11, true, 0.04);		// 3rd last should be small to limit scale...
+        // Sets maximum number of corners to 4 times the actual number
+        goodFeaturesToTrack(imGrey, foundCorners, maxCorners, 0.001, 5.0, Mat(), 11, true, 0.04);		// 3rd last should be small to limit scale...
 
-			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
+        //printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
 
-            break;
-                    // ==================================================
-        case 2:     //        BIPOLAR HESSIAN DETECTOR
-                    // ==================================================
+        break;
+        // ==================================================
+    case 2:     //        BIPOLAR HESSIAN DETECTOR
+        // ==================================================
 #ifdef _WIN32
-            /*
-			// Copy from cv::Mat to vil_image view
-			imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
+        /*
+        // Copy from cv::Mat to vil_image view
+        imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
 
 
-			imGrey.copyTo(imageCopy);						// Copy image data to this location
-			//vByteImage.top_left_ptr() = image.data;
+        imGrey.copyTo(imageCopy);						// Copy image data to this location
+        //vByteImage.top_left_ptr() = image.data;
 
-			imshow("copiedImage", imageCopy);
-			waitKey(50);
-			//printf("%s << imageCopy.rows = %d; imageCopy.cols = %d\n", __FUNCTION__, imageCopy.rows, imageCopy.cols);
+        imshow("copiedImage", imageCopy);
+        waitKey(50);
+        //printf("%s << imageCopy.rows = %d; imageCopy.cols = %d\n", __FUNCTION__, imageCopy.rows, imageCopy.cols);
 
-			// Convert to double
-			vil_convert_cast(vByteImage, vDblImage);
+        // Convert to double
+        vil_convert_cast(vByteImage, vDblImage);
 
-			// Extract corners.
-			qaclfl::extractor_hessian_graph::extract_corners(corners, vDblImage, 5.0);	//
+        // Extract corners.
+        qaclfl::extractor_hessian_graph::extract_corners(corners, vDblImage, 5.0);	//
 
-			// Convert from VXL corners back to "foundCorners" vector
-			for (unsigned int i = 0; i < corners.size(); i++) {
-				// x, y, dx, dy, scale, strength ?
-				foundCorners.push_back(Point2d(double(corners(i)[0]), double(corners(i)[1])));		// 2nd argument: double(corners(i)[0])
-				//printf("%s << pt(%d) = (%f; %f)\n", __FUNCTION__, i, corners(i)[1], corners(i)[0]);
-			}
+        // Convert from VXL corners back to "foundCorners" vector
+        for (unsigned int i = 0; i < corners.size(); i++) {
+        	// x, y, dx, dy, scale, strength ?
+        	foundCorners.push_back(Point2d(double(corners(i)[0]), double(corners(i)[1])));		// 2nd argument: double(corners(i)[0])
+        	//printf("%s << pt(%d) = (%f; %f)\n", __FUNCTION__, i, corners(i)[1], corners(i)[0]);
+        }
 
-			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
-            */
-			// That's it!
-            break;
+        //printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
+        */
+        // That's it!
+        break;
 
 #endif
 
 #ifndef _WIN32
-			// Same as case 0
-            dst.assign(src.begin(), src.end());
-			return 0;
+        // Same as case 0
+        dst.assign(src.begin(), src.end());
+        return 0;
 #endif
-                    // ==================================================
-        case 3:     //        BASIC FAST DETECTOR
-                    // ==================================================
+        // ==================================================
+    case 3:     //        BASIC FAST DETECTOR
+        // ==================================================
 
-			//printf("%s << Using FAST detector..\n", __FUNCTION__);
-			// Sets maximum number of corners to 4 times the actual number
-			FAST(imGrey, keypoints, 16);
+        //printf("%s << Using FAST detector..\n", __FUNCTION__);
+        // Sets maximum number of corners to 4 times the actual number
+        FAST(imGrey, keypoints, 16);
 
-			for (unsigned int i = 0; i < keypoints.size(); i++) {
-				foundCorners.push_back(keypoints.at(i).pt);
-			}
+        for (unsigned int i = 0; i < keypoints.size(); i++)
+        {
+            foundCorners.push_back(keypoints.at(i).pt);
+        }
 
-			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
+        //printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
 
-            break;
-                    // ==================================================
-        case 4:     //        cornerSubPix()
-                    // ==================================================
-            //printf("%s << image.size() = (%d, %d)\n", __FUNCTION__, image.cols, image.rows);
-            //printf("%s << src.size() = %d \n", __FUNCTION__, src.size());
-            //printf("%s << searchDist = %f \n", __FUNCTION__, searchDist);
-            //printf("%s << pre cSP\n", __FUNCTION__);
+        break;
+        // ==================================================
+    case 4:     //        cornerSubPix()
+        // ==================================================
+        //printf("%s << image.size() = (%d, %d)\n", __FUNCTION__, image.cols, image.rows);
+        //printf("%s << src.size() = %d \n", __FUNCTION__, src.size());
+        //printf("%s << searchDist = %f \n", __FUNCTION__, searchDist);
+        //printf("%s << pre cSP\n", __FUNCTION__);
 
-            // Rather than trying to correct all at one time, modify the distance
+        // Rather than trying to correct all at one time, modify the distance
 
-            initialRefinementOfCorners(imGrey, src, patternSize);
+        initialRefinementOfCorners(imGrey, src, patternSize);
 
-			dst.assign(src.begin(), src.end());
+        dst.assign(src.begin(), src.end());
 
-            if (DEBUG_MODE > 3) {
-                image.copyTo(inputDisp);
-                drawChessboardCorners(inputDisp, cvSize(12, 8), Mat(dst), true);
-                imshow("mainWin", inputDisp);
-                waitKey(0);
+        if (DEBUG_MODE > 3)
+        {
+            image.copyTo(inputDisp);
+            drawChessboardCorners(inputDisp, cvSize(12, 8), Mat(dst), true);
+            imshow("mainWin", inputDisp);
+            waitKey(0);
+        }
+
+        return 0;
+        //break;
+        // ==================================================
+    case 5:     //        cornerSubPix() + BIPOLAR HESSIAN DETECTOR
+        // ==================================================
+        cornerSubPix(image, src, Size(searchDist*2, searchDist*2), Size(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 15, 0.1));
+
+        maxDist = 0.5;	// reduce searchDist for using bipolar hessian to refine the cornerSubPix() values slightly, but not radically..
+
+#ifdef _WIN32
+        /*
+        // Copy from cv::Mat to vil_image view
+        imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
+
+
+        imGrey.copyTo(imageCopy);						// Copy image data to this location
+        //vByteImage.top_left_ptr() = image.data;
+
+        imshow("copiedImage", imageCopy);
+        waitKey(50);
+        //printf("%s << imageCopy.rows = %d; imageCopy.cols = %d\n", __FUNCTION__, imageCopy.rows, imageCopy.cols);
+
+        // Convert to double
+        vil_convert_cast(vByteImage, vDblImage);
+
+        // Extract corners.
+        qaclfl::extractor_hessian_graph::extract_corners(corners, vDblImage, 3.0);	//
+
+        // Convert from VXL corners back to "foundCorners" vector
+        for (unsigned int i = 0; i < corners.size(); i++) {
+        	// x, y, dx, dy, scale, strength ?
+        	foundCorners.push_back(Point2d(double(corners(i)[0]), double(corners(i)[1])));		// 2nd argument: double(corners(i)[0])
+        	//printf("%s << pt(%d) = (%f; %f)\n", __FUNCTION__, i, corners(i)[1], corners(i)[0]);
+        }
+
+        //printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
+        */
+        // That's it!
+        break;
+
+#endif
+
+#ifndef _WIN32
+        // Same as case 0
+        dst.assign(src.begin(), src.end());
+        return 0;
+#endif
+    default:
+        return -1;
+    }
+
+    //printf("%s << Corners Detected.\n", __FUNCTION__);
+
+    // Display raw corners detected:
+    //printf("%s << A...\n", __FUNCTION__);
+    Mat imCpy(imGrey.rows, imGrey.cols, CV_8UC3);
+    Mat imCpy2;
+    //printf("%s << Trying to convert...\n", __FUNCTION__);
+    cvtColor(imGrey, imCpy, CV_GRAY2RGB);
+    //printf("%s << Converted.\n", __FUNCTION__);
+    resize(imCpy, imCpy2, Size(), 2.0, 2.0);
+
+    Scalar color;
+
+    for (unsigned int i = 0; i < foundCorners.size(); i++)
+    {
+        color = Scalar( rand()&255, rand()&255, rand()&255 );
+        circle(imCpy2, Point2f(foundCorners.at(i).x * 2.0, foundCorners.at(i).y * 2.0), 4, color, 2);
+    }
+
+    imshow("rawCorners", imCpy2);
+    waitKey(20);
+
+    srcBestMatches = new unsigned int[src.size()];
+
+    // Search for best matches between src and found
+    for (unsigned int i = 0; i < src.size(); i++)
+    {
+        bestDist = 9e99;
+        for (unsigned int j = 0; j < foundCorners.size(); j++)
+        {
+            currDist = pow(pow(double(src.at(i).x) - double(foundCorners.at(j).x), 2.0) + pow(double(src.at(i).y) - double(foundCorners.at(j).y), 2.0), 0.5);
+
+            if (currDist < bestDist)
+            {
+                bestDist = currDist;
+                srcBestMatches[i] = j;
             }
+        }
+    }
 
-			return 0;
-			//break;
-                    // ==================================================
-        case 5:     //        cornerSubPix() + BIPOLAR HESSIAN DETECTOR
-                    // ==================================================
-            cornerSubPix(image, src, Size(searchDist*2, searchDist*2), Size(-1,-1), cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 15, 0.1));
+    // Check if these best matches are reversed
+    for (unsigned int i = 0; i < src.size(); i++)
+    {
+        bestDist = 9e99;
+        for (unsigned int k = 0; k < src.size(); k++)
+        {
+            // Distance between src.at(i)'s best match, and all other src elements
+            currDist = pow(pow(double(src.at(k).x) - double(foundCorners.at(srcBestMatches[i]).x), 2.0) + pow(double(src.at(k).y) - double(foundCorners.at(srcBestMatches[i]).y), 2.0), 0.5);
 
-            maxDist = 0.5;	// reduce searchDist for using bipolar hessian to refine the cornerSubPix() values slightly, but not radically..
+            if (currDist < bestDist)
+            {
+                bestDist = currDist;
+                foundBestMatch = k;
+            }
+        }
 
-#ifdef _WIN32
-            /*
-			// Copy from cv::Mat to vil_image view
-			imageCopy.data = vByteImage.top_left_ptr();		// Point imageCopy data to vByteImage
+        // if src.at(i)'s best match is src.at(i), it's a besty!
+        if ((foundBestMatch == i) && (bestDist < searchDist))
+        {
+            successfulMappings++;
+            dst.push_back(foundCorners.at(srcBestMatches[i]));
+        }
+        else
+        {
+            dst.push_back(src.at(i));
+        }
+    }
 
+    //printf("%s << src.size() = %d\n", __FUNCTION__, src.size());
+    //printf("%s << dst.size() = %d\n", __FUNCTION__, dst.size());
 
-			imGrey.copyTo(imageCopy);						// Copy image data to this location
-			//vByteImage.top_left_ptr() = image.data;
+    /*
+    // Or, if you just want 1-way mappings:
+    for (unsigned int i = 0; i < src.size(); i++) {
+    	dst.push_back(foundCorners.at(srcBestMatches[i]));
+    }
+    */
 
-			imshow("copiedImage", imageCopy);
-			waitKey(50);
-			//printf("%s << imageCopy.rows = %d; imageCopy.cols = %d\n", __FUNCTION__, imageCopy.rows, imageCopy.cols);
+    delete[] srcBestMatches;
 
-			// Convert to double
-			vil_convert_cast(vByteImage, vDblImage);
+    //printf("%s << successfulMappings = %d\n", __FUNCTION__, successfulMappings);
 
-			// Extract corners.
-			qaclfl::extractor_hessian_graph::extract_corners(corners, vDblImage, 3.0);	//
-
-			// Convert from VXL corners back to "foundCorners" vector
-			for (unsigned int i = 0; i < corners.size(); i++) {
-				// x, y, dx, dy, scale, strength ?
-				foundCorners.push_back(Point2d(double(corners(i)[0]), double(corners(i)[1])));		// 2nd argument: double(corners(i)[0])
-				//printf("%s << pt(%d) = (%f; %f)\n", __FUNCTION__, i, corners(i)[1], corners(i)[0]);
-			}
-
-			//printf("%s << foundCorners.size() = %d\n", __FUNCTION__, foundCorners.size());
-            */
-			// That's it!
-            break;
-
-#endif
-
-#ifndef _WIN32
-			// Same as case 0
-            dst.assign(src.begin(), src.end());
-			return 0;
-#endif
-        default:
-            return -1;
-	}
-
-	//printf("%s << Corners Detected.\n", __FUNCTION__);
-
-	// Display raw corners detected:
-	//printf("%s << A...\n", __FUNCTION__);
-	Mat imCpy(imGrey.rows, imGrey.cols, CV_8UC3);
-	Mat imCpy2;
-	//printf("%s << Trying to convert...\n", __FUNCTION__);
-	cvtColor(imGrey, imCpy, CV_GRAY2RGB);
-	//printf("%s << Converted.\n", __FUNCTION__);
-	resize(imCpy, imCpy2, Size(), 2.0, 2.0);
-
-	Scalar color;
-
-	for (unsigned int i = 0; i < foundCorners.size(); i++) {
-		color = Scalar( rand()&255, rand()&255, rand()&255 );
-		circle(imCpy2, Point2f(foundCorners.at(i).x * 2.0, foundCorners.at(i).y * 2.0), 4, color, 2);
-	}
-
-	imshow("rawCorners", imCpy2);
-	waitKey(20);
-
-	srcBestMatches = new unsigned int[src.size()];
-
-	// Search for best matches between src and found
-	for (unsigned int i = 0; i < src.size(); i++) {
-		bestDist = 9e99;
-		for (unsigned int j = 0; j < foundCorners.size(); j++) {
-			currDist = pow(pow(double(src.at(i).x) - double(foundCorners.at(j).x), 2.0) + pow(double(src.at(i).y) - double(foundCorners.at(j).y), 2.0), 0.5);
-
-			if (currDist < bestDist) {
-				bestDist = currDist;
-				srcBestMatches[i] = j;
-			}
-		}
-	}
-
-	// Check if these best matches are reversed
-	for (unsigned int i = 0; i < src.size(); i++) {
-		bestDist = 9e99;
-		for (unsigned int k = 0; k < src.size(); k++) {
-			// Distance between src.at(i)'s best match, and all other src elements
-			currDist = pow(pow(double(src.at(k).x) - double(foundCorners.at(srcBestMatches[i]).x), 2.0) + pow(double(src.at(k).y) - double(foundCorners.at(srcBestMatches[i]).y), 2.0), 0.5);
-
-			if (currDist < bestDist) {
-				bestDist = currDist;
-				foundBestMatch = k;
-			}
-		}
-
-		// if src.at(i)'s best match is src.at(i), it's a besty!
-		if ((foundBestMatch == i) && (bestDist < searchDist)) {
-			successfulMappings++;
-			dst.push_back(foundCorners.at(srcBestMatches[i]));
-		} else {
-			dst.push_back(src.at(i));
-		}
-	}
-
-	//printf("%s << src.size() = %d\n", __FUNCTION__, src.size());
-	//printf("%s << dst.size() = %d\n", __FUNCTION__, dst.size());
-
-	/*
-	// Or, if you just want 1-way mappings:
-	for (unsigned int i = 0; i < src.size(); i++) {
-		dst.push_back(foundCorners.at(srcBestMatches[i]));
-	}
-	*/
-
-	delete[] srcBestMatches;
-
-	//printf("%s << successfulMappings = %d\n", __FUNCTION__, successfulMappings);
-
-	return successfulMappings;
+    return successfulMappings;
 }
 
-void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size patternSize) {
+void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size patternSize)
+{
     // ...
 
     int correctionDistance;
@@ -2558,7 +2900,8 @@ void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size pa
 
     Mat forDisp2;
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         debugDisplayPattern(imDisplay, patternSize, forDisplay, false);
     }
 
@@ -2569,8 +2912,10 @@ void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size pa
 
     // Go through all points and establish neighbourhood
 
-    for (int j = 1; j < patternSize.height-1; j++) {
-        for (int i = 1; i < patternSize.width-1; i++) {
+    for (int j = 1; j < patternSize.height-1; j++)
+    {
+        for (int i = 1; i < patternSize.width-1; i++)
+        {
 
             ptNeighbourhood.clear();
 
@@ -2599,7 +2944,8 @@ void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size pa
 
             forDisp2 = Mat(ptNeighbourhood);
 
-            if (DEBUG_MODE > 2) {
+            if (DEBUG_MODE > 2)
+            {
                 //debugDisplayPattern(imDisplay, Size(2, 2), forDisp2, true);
             }
 
@@ -2628,7 +2974,8 @@ void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size pa
 
 
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         debugDisplayPattern(imDisplay, patternSize, forDisplay, false);
 
         drawLinesBetweenPoints(imCol, src, dst);
@@ -2648,7 +2995,8 @@ void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size pa
 
 }
 
-void sortCorners(Size imageSize, Size patternSize, vector<Point2f>& corners) {
+void sortCorners(Size imageSize, Size patternSize, vector<Point2f>& corners)
+{
     vector<Point2f> newCorners;
 
     int X = patternSize.width/2;
@@ -2657,17 +3005,22 @@ void sortCorners(Size imageSize, Size patternSize, vector<Point2f>& corners) {
     // 0,1,4,5,8,9,12,13,16,17,20,21,2,3,6,7,10,11,14,15,18,19,22,23
     // 0,4,8,12,16,20
 
-    for (int i = 0; i < Y; i++) {       // for each row (square)
-        for (int j = 0; j < X; j++) {      // for each column (square)
-            if (DEBUG_MODE > 3) {
+    for (int i = 0; i < Y; i++)         // for each row (square)
+    {
+        for (int j = 0; j < X; j++)        // for each column (square)
+        {
+            if (DEBUG_MODE > 3)
+            {
                 printf("%d, %d, ", 4*i*X+j*4, 4*i*X+j*4+1);
             }
             newCorners.push_back(corners.at(4*i*X+j*4));        // push back first element
             newCorners.push_back(corners.at(4*i*X+j*4+1));      // push back second element
         }
 
-        for (int j = 0; j < X; j++) {
-            if (DEBUG_MODE > 3) {
+        for (int j = 0; j < X; j++)
+        {
+            if (DEBUG_MODE > 3)
+            {
                 printf("%d, %d, ", 4*i*X+j*4+2, 4*i*X+j*4+3);
             }
             newCorners.push_back(corners.at(4*i*X+j*4+2));        // push back third element
@@ -2678,12 +3031,14 @@ void sortCorners(Size imageSize, Size patternSize, vector<Point2f>& corners) {
 
     corners.clear();
 
-    for (unsigned int i = 0; i < newCorners.size(); i++) {
+    for (unsigned int i = 0; i < newCorners.size(); i++)
+    {
         corners.push_back(newCorners.at(i));
     }
 }
 
-bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& patchCentres, int mode) {
+bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& patchCentres, int mode)
+{
 
     bool found = true;
 
@@ -2692,9 +3047,12 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
     printf("%s << Entering...\n", __FUNCTION__);
 
     Mat imGrey;
-    if (image.channels() > 1) {
+    if (image.channels() > 1)
+    {
         cvtColor(image, imGrey, CV_RGB2GRAY);
-    } else {
+    }
+    else
+    {
         image.copyTo(imGrey);
     }
 
@@ -2703,17 +3061,24 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
 
     //printf("%s << patternSize = (%d, %d)\n", __FUNCTION__, patternSize.width, patternSize.height);
 
-    if (mode == 1) {
-        for (int i = 0; i < patternSize.height/2; i++) {
-            for (int j = 0; j < patternSize.width/2; j++) {
+    if (mode == 1)
+    {
+        for (int i = 0; i < patternSize.height/2; i++)
+        {
+            for (int j = 0; j < patternSize.width/2; j++)
+            {
                 newPoint = Point3f(float(i), float(j), 0.0);
                 row.push_back(newPoint);
             }
 
         }
-    } else {
-        for (int i = 0; i < patternSize.height+1; i++) {
-            for (int j = 0; j < patternSize.width+1; j++) {
+    }
+    else
+    {
+        for (int i = 0; i < patternSize.height+1; i++)
+        {
+            for (int j = 0; j < patternSize.width+1; j++)
+            {
                 newPoint = Point3f(float(i), float(j), 0.0);
                 row.push_back(newPoint);
             }
@@ -2721,7 +3086,8 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
         }
     }
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat cornersMat(patchCentres);
         debugDisplayPattern(image, cvSize(patternSize.width/2, patternSize.height/2), cornersMat);
     }
@@ -2755,7 +3121,8 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
     vector<Point2f> newCentres;
     found = findPatternCentres(undistortedImage, patternSize, newCentres, mode);
 
-    if (!found) {
+    if (!found)
+    {
         printf("%s << Pattern could not be found once image was undistorted..\n", __FUNCTION__);
         //cin.get();
         return found;
@@ -2768,7 +3135,8 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
     printf("%s << patchCentres.size() = %d\n", __FUNCTION__, patchCentres.size());
     printf("%s << DONE.\n", __FUNCTION__);
 
-    if (DEBUG_MODE > 2) {
+    if (DEBUG_MODE > 2)
+    {
         Mat cornersMat(patchCentres);
         debugDisplayPattern(image, cvSize(patternSize.width/2, patternSize.height/2), cornersMat);
     }
@@ -2827,17 +3195,18 @@ bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& pa
     return found;
 }
 
-void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat& cameraMatrix, const Mat& distCoeffs, const Mat& newCamMat) {
+void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat& cameraMatrix, const Mat& distCoeffs, const Mat& newCamMat)
+{
 
     double fx, fy, ifx, ify, cx, cy;
-	double fx0, fy0, ifx0, ify0, cx0, cy0;
-    double k[8]={0,0,0,0,0,0,0,0}, RR[3][3]={{1,0,0},{0,1,0},{0,0,1}};
+    double fx0, fy0, ifx0, ify0, cx0, cy0;
+    double k[8]= {0,0,0,0,0,0,0,0}, RR[3][3]= {{1,0,0},{0,1,0},{0,0,1}};
     double r2, icdist, deltaX, deltaY;
     double x, y, x0, y0, x1, y1, xx, yy, ww;
 
-	Mat optimalMat(3, 3, CV_64FC1);
+    Mat optimalMat(3, 3, CV_64FC1);
 
-	// optimalMat = getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, Size(640,48), 1.0);
+    // optimalMat = getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, Size(640,48), 1.0);
 
     //printf("%s << entered function.\n", __FUNCTION__);
 
@@ -2857,7 +3226,8 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
     cx = newCamMat.at<double>(0, 2);
     cy = newCamMat.at<double>(1, 2);
 
-    for (unsigned int i = 0; i < 8; i++){
+    for (unsigned int i = 0; i < 8; i++)
+    {
         k[i] = distCoeffs.at<double>(0, i);
     }
 
@@ -2867,7 +3237,8 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
 
     dst.clear();
 
-    for (unsigned int i = 0; i < src.size(); i++) {
+    for (unsigned int i = 0; i < src.size(); i++)
+    {
         // Points in undistorted image
         x = src.at(i).x;
         y = src.at(i).y;
@@ -2878,8 +3249,8 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
         x0 = (x - cx)*ifx;
         y0 = (y - cy)*ify;
 
-		x = x0;
-		y = y0;
+        x = x0;
+        y = y0;
 
         // Determine radial and tangential distances/factors
         r2 = x*x + y*y;
@@ -2887,7 +3258,7 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
         deltaX = 2*k[2]*x*y + k[3]*(r2 + 2*x*x);
         deltaY = k[2]*(r2 + 2*y*y) + 2*k[3]*x*y;
 
-		//icdist *= 0.75;
+        //icdist *= 0.75;
 
         // Redistort
         ///*
@@ -2898,8 +3269,8 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
         x = (x0/icdist) + deltaX;
         y = (y0/icdist) + deltaY;
         //*/
-		//x = x0/icdist;
-		//y = y0/icdist;
+        //x = x0/icdist;
+        //y = y0/icdist;
 
         // Do something...
         /*
@@ -2910,8 +3281,8 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
         y = yy*ww;
         */
 
-		x1 = x;
-		y1 = y;
+        x1 = x;
+        y1 = y;
 
         // Reverse cameraMatrix parameters (denormalization)
         x = (x1/ifx0) + cx0;
@@ -2928,11 +3299,13 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
     // dst.assign(src.begin(), src.end());
 }
 
-bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& centres, int mode) {
+bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& centres, int mode)
+{
     // mode 0: MSER chessboard finder
     // mode 1: MSER mask finder
 
-    if (!checkAcutance()) {
+    if (!checkAcutance())
+    {
         return false;
     }
 
@@ -2942,13 +3315,16 @@ bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& cen
     vector<vector<Point> > msers;
     findAllPatches(image, patternSize, msers);
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         debugDisplayPatches(image, msers);
     }
 
-    if (msers.size() < desiredPatchQuantity) {
+    if (msers.size() < desiredPatchQuantity)
+    {
         centres.clear();
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Insufficient patches found. Returning.\n", __FUNCTION__);
         }
 
@@ -2957,19 +3333,23 @@ bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& cen
 
     bool found = refinePatches(image, patternSize, msers, centres, mode);
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << Patches found after refinement = %d\n", __FUNCTION__, msers.size());
     }
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         debugDisplayPatches(image, msers);
     }
 
     // If patches still not found...
-    if (!found) {
+    if (!found)
+    {
         centres.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Correct number of patches not found. Returning.\n", __FUNCTION__);
         }
 
@@ -2978,17 +3358,20 @@ bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& cen
 
     sortPatches(image.size(), patternSize, centres, mode);
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         Mat patchCentres_(centres);
         debugDisplayPattern(image, cvSize(patchCols, patchRows), patchCentres_);
     }
 
     found = verifyPatches(image.size(), patternSize, centres, mode, 0, 1000);
 
-    if (!found) {
+    if (!found)
+    {
         centres.clear();
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Pattern verification failed. Returning.\n", __FUNCTION__);
         }
 
@@ -2998,16 +3381,19 @@ bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& cen
     return found;
 }
 
-bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints, double minDist, double maxDist) {
+bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints, double minDist, double maxDist)
+{
 
     // Check that all points are within the image view:
     bool retVal = true;
 
     retVal = patternInFrame(imSize, patternPoints);
 
-    if (retVal == false) {
+    if (retVal == false)
+    {
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Some pattern points are outside valid area.\n", __FUNCTION__);
         }
 
@@ -3026,8 +3412,10 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
 
     // STRAIGHTNESS TEST
     // For each row
-    for (int i = 0; i < patternSize.height; i++) {
-        for (int j = 0; j < patternSize.width-2; j++) {
+    for (int i = 0; i < patternSize.height; i++)
+    {
+        for (int j = 0; j < patternSize.width-2; j++)
+        {
             // check distance of point with one to its right
 
             index = i*patternSize.width + j;
@@ -3052,8 +3440,10 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
             factor = max(dist1, dist2) / min(dist1, dist2);
 
             //printf("%s << dist = %f\n", __FUNCTION__, dist);
-            if (dist > maxStraightnessDist) {
-                if (DEBUG_MODE > 0) {
+            if (dist > maxStraightnessDist)
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Row out of alignment.\n", __FUNCTION__);
                 }
 
@@ -3061,8 +3451,10 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
                 return false;
             }
 
-            if (factor > 2.0) {
-                if (DEBUG_MODE > 0) {
+            if (factor > 2.0)
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Row factor is out.\n", __FUNCTION__);
                     printf("%s << factor / [dist1, dist2] = %f / [%f, %f].\n", __FUNCTION__, factor, dist1, dist2);
                 }
@@ -3075,8 +3467,10 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
     //waitKey(0);
 
     // For each column
-    for (int i = 0; i < patternSize.height-2; i++) {
-        for (int j = 0; j < patternSize.width; j++) {
+    for (int i = 0; i < patternSize.height-2; i++)
+    {
+        for (int j = 0; j < patternSize.width; j++)
+        {
             // check distance of point with one below it
             dist = perpDist(patternPoints.at(i*patternSize.width + j), patternPoints.at((i+1)*patternSize.width + j), patternPoints.at((i+2)*patternSize.width + j));
             dist1 = distBetweenPts2f(patternPoints.at(i*patternSize.width + j), patternPoints.at((i+1)*patternSize.width + j));
@@ -3084,16 +3478,20 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
 
             factor = max(dist1, dist2) / min(dist1, dist2);
 
-            if (dist > maxStraightnessDist) {
-                if (DEBUG_MODE > 0) {
+            if (dist > maxStraightnessDist)
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Column out of alignment.\n", __FUNCTION__);
                 }
                 //waitKey(0);
                 return false;
             }
 
-            if (factor > 2.0) {
-                if (DEBUG_MODE > 0) {
+            if (factor > 2.0)
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Column out of scale. 1\n", __FUNCTION__);
                 }
                 //waitKey(0);
@@ -3104,12 +3502,16 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
 
     // CLOSENESS TEST
     // For each row
-    for (int i = 0; i < patternSize.height; i++) {
-        for (int j = 0; j < patternSize.width-1; j++) {
+    for (int i = 0; i < patternSize.height; i++)
+    {
+        for (int j = 0; j < patternSize.width-1; j++)
+        {
             // check distance of point with one to its right
             dist = distBetweenPts2f(patternPoints.at(i*patternSize.width + j),patternPoints.at(i*patternSize.width + j + 1));
-            if ((dist > maxDist) || (dist < minDist)) {
-                if (DEBUG_MODE > 0) {
+            if ((dist > maxDist) || (dist < minDist))
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Row out of scale.\n", __FUNCTION__);
                     printf("%s << dist / [min, max] = %f / [%f, %f].\n", __FUNCTION__, dist, minDist, maxDist);
 
@@ -3121,12 +3523,16 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
     }
 
     // For each column
-    for (int i = 0; i < patternSize.height-1; i++) {
-        for (int j = 0; j < patternSize.width; j++) {
+    for (int i = 0; i < patternSize.height-1; i++)
+    {
+        for (int j = 0; j < patternSize.width; j++)
+        {
             // check distance of point with one below it
             dist = distBetweenPts2f(patternPoints.at(i*patternSize.width + j), patternPoints.at((i+1)*patternSize.width + j));
-            if ((dist > maxDist) || (dist < minDist)) {
-                if (DEBUG_MODE > 0) {
+            if ((dist > maxDist) || (dist < minDist))
+            {
+                if (DEBUG_MODE > 0)
+                {
                     printf("%s << Column out of scale.\n", __FUNCTION__);
                 }
                 //waitKey(0);
@@ -3139,13 +3545,17 @@ bool verifyPattern(Size imSize, Size patternSize, vector<Point2f>& patternPoints
     return true;
 }
 
-bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres, int mode, double minDist, double maxDist) {
+bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres, int mode, double minDist, double maxDist)
+{
 
     Size newPatternSize;
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         newPatternSize = Size(patternSize.width+1, patternSize.height+1);
-    } else {
+    }
+    else
+    {
         newPatternSize = Size(patternSize.width/2, patternSize.height/2);
     }
 
@@ -3155,9 +3565,12 @@ bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres,
     int64 t = getTickCount();
 
     // Some kind of big loop test, and if a failure is found return false immediately
-    for (unsigned int i = 0; i < 10; i++) {
-        if (0) {
-            if (DEBUG_MODE > 0) {
+    for (unsigned int i = 0; i < 10; i++)
+    {
+        if (0)
+        {
+            if (DEBUG_MODE > 0)
+            {
                 t = getTickCount() - t;
                 printf("%s << Algorithm duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
             }
@@ -3165,7 +3578,8 @@ bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres,
         }
     }
 
-    if (DEBUG_MODE > 0) {
+    if (DEBUG_MODE > 0)
+    {
         t = getTickCount() - t;
         printf("%s << Algorithm duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
     }
@@ -3173,11 +3587,14 @@ bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres,
     return true;
 }
 
-bool patternInFrame(Size imSize, vector<Point2f>& patternPoints, int minBorder) {
+bool patternInFrame(Size imSize, vector<Point2f>& patternPoints, int minBorder)
+{
 
     // Check that all points are within the image view:
-    for (unsigned int i = 0; i < patternPoints.size(); i++) {
-        if ((patternPoints.at(i).x >= imSize.width-minBorder) || (patternPoints.at(i).x < minBorder) || (patternPoints.at(i).y >= imSize.height-minBorder) || (patternPoints.at(i).y < minBorder)) {
+    for (unsigned int i = 0; i < patternPoints.size(); i++)
+    {
+        if ((patternPoints.at(i).x >= imSize.width-minBorder) || (patternPoints.at(i).x < minBorder) || (patternPoints.at(i).y >= imSize.height-minBorder) || (patternPoints.at(i).y < minBorder))
+        {
 
             patternPoints.clear();
 
@@ -3190,7 +3607,8 @@ bool patternInFrame(Size imSize, vector<Point2f>& patternPoints, int minBorder) 
 
 }
 
-void shapeFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
+void shapeFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers)
+{
     // TODO:
     // Improve height/width measurement so that it more accurately detects skinniness, since
     // at the moment thin msers that are at angles are still accepted.
@@ -3204,14 +3622,16 @@ void shapeFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
     double cWidth, cHeight;
     double acceptableFactor = 2.0;
 
-    for (unsigned int i = 0; i < patches.size(); i++) {
+    for (unsigned int i = 0; i < patches.size(); i++)
+    {
         cWidth = 0;
         cHeight = 0;
         //contourDimensions(patches.at(i).hull, cWidth, cHeight);
         contourDimensions(msers.at(i), cWidth, cHeight);
         //printf("contour [%d] dimensions: %f x %f\n", i, cWidth, cHeight);
 
-        if (((cHeight/cWidth) < acceptableFactor) && ((cWidth/cHeight) < acceptableFactor)) {
+        if (((cHeight/cWidth) < acceptableFactor) && ((cWidth/cHeight) < acceptableFactor))
+        {
             newMsers.push_back(msers.at(i));
             newPatches.push_back(patches.at(i));
         }
@@ -3220,21 +3640,25 @@ void shapeFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
     patches.clear();
     msers.clear();
 
-    for (unsigned int i = 0; i < newPatches.size(); i++) {
+    for (unsigned int i = 0; i < newPatches.size(); i++)
+    {
         patches.push_back(newPatches.at(i));
         msers.push_back(newMsers.at(i));
     }
 
 }
 
-void varianceFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
+void varianceFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers)
+{
     vector<mserPatch> newPatches;
     vector<vector<Point> > newMsers;
 
     double maxAcceptableVariance = 256.0;   // 16 squared...
 
-    for (unsigned int i = 0; i < patches.size(); i++) {
-        if (patches.at(i).varIntensity < maxAcceptableVariance) {
+    for (unsigned int i = 0; i < patches.size(); i++)
+    {
+        if (patches.at(i).varIntensity < maxAcceptableVariance)
+        {
             newMsers.push_back(msers.at(i));
             newPatches.push_back(patches.at(i));
         }
@@ -3243,14 +3667,16 @@ void varianceFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
     patches.clear();
     msers.clear();
 
-    for (unsigned int i = 0; i < newPatches.size(); i++) {
+    for (unsigned int i = 0; i < newPatches.size(); i++)
+    {
         patches.push_back(newPatches.at(i));
         msers.push_back(newMsers.at(i));
     }
 
 }
 
-void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) {
+void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers)
+{
 
     int i = 0, j = 0;
 
@@ -3258,18 +3684,22 @@ void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) 
 
     double enclosureScore = 0.0;
 
-    while (i < patches.size()) {
+    while (i < patches.size())
+    {
         encloses = false;
         j = 0;
 
         //printf("%s << i = %d\n", __FUNCTION__, i);
 
-        while ((j < patches.size()) && !encloses) {
+        while ((j < patches.size()) && !encloses)
+        {
 
             //printf("%s << j = %d\n", __FUNCTION__, j);
 
-            if (j != i) {
-                if (patches.at(i).area >= patches.at(j).area) {
+            if (j != i)
+            {
+                if (patches.at(i).area >= patches.at(j).area)
+                {
 
                     //printf("%s << i = %d\n", __FUNCTION__, i);
                     //printf("%s << j = %d\n", __FUNCTION__, j);
@@ -3280,7 +3710,8 @@ void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) 
 
                     //printf("%s << enclosureScore = %f\n", __FUNCTION__, enclosureScore);
 
-                    if (enclosureScore > 0.0) {
+                    if (enclosureScore > 0.0)
+                    {
                         encloses = true;
                         //printf("%s << patch [%d] encloses patch [%d]\n", __FUNCTION__, i, j);
                     }
@@ -3292,10 +3723,13 @@ void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) 
 
 
 
-        if (encloses) {
+        if (encloses)
+        {
             patches.erase(patches.begin() + i);
             msers.erase(msers.begin() + i);
-        } else {
+        }
+        else
+        {
             i++;
         }
     }
@@ -3310,66 +3744,72 @@ void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers) 
     vector<mserPatch> newPatches;
     vector<vector<Point> > newMsers;
     double enclosed = -1.0;
-	Point avCenter(0, 0);
-	unsigned int accumulatedCount = 0;
+    Point avCenter(0, 0);
+    unsigned int accumulatedCount = 0;
 
-    for (unsigned int i = 0; i < patches.size()-1; i++) {
+    for (unsigned int i = 0; i < patches.size()-1; i++)
+    {
         // Assumed it's not 'enclosed' by another MSER
         enclosed = -1.0;
 
-       // First point will always be the smallest in a series
-        if (i == 0) {
+        // First point will always be the smallest in a series
+        if (i == 0)
+        {
             newPatches.push_back(patches.at(i));
             newMsers.push_back(msers.at(i));
 
-			avCenter += patches.at(i).centroid;		// Add centroid to accumulated center
-			accumulatedCount++;
+            avCenter += patches.at(i).centroid;		// Add centroid to accumulated center
+            accumulatedCount++;
         }
 
 
         // If the area of the 2nd one is greater
-        if (patches.at(i).area < patches.at(i+1).area) {
+        if (patches.at(i).area < patches.at(i+1).area)
+        {
             // Check if the first MSER is within the second MSER
             enclosed = pointPolygonTest(Mat(patches.at(i+1).hull), patches.at(i).centroid, false);
         }
 
 
         // If new point does not enclose current point, you can add new point to the newMsers vector
-        if (enclosed < 0.0) {
+        if (enclosed < 0.0)
+        {
             //printf("not enclosed\n");
 
-			// Want to correct the last added point to be the mean of all of the 'series'
+            // Want to correct the last added point to be the mean of all of the 'series'
 
-			//printf("%s << Changing centroid: (%d, %d) to ", __FUNCTION__, newPatches.at(newPatches.size()-1).centroid.x, newPatches.at(newPatches.size()-1).centroid.y);
-			//newPatches.at(newPatches.size()-1).centroid = Point(avCenter.x/accumulatedCount, avCenter.y/accumulatedCount);
-			//newPatches.at(newPatches.size()-1).centroid = patches.at(i).centroid;
-			//printf("(%d, %d)\n", newPatches.at(newPatches.size()-1).centroid.x, newPatches.at(newPatches.size()-1).centroid.y);
-			//cin.get();
+            //printf("%s << Changing centroid: (%d, %d) to ", __FUNCTION__, newPatches.at(newPatches.size()-1).centroid.x, newPatches.at(newPatches.size()-1).centroid.y);
+            //newPatches.at(newPatches.size()-1).centroid = Point(avCenter.x/accumulatedCount, avCenter.y/accumulatedCount);
+            //newPatches.at(newPatches.size()-1).centroid = patches.at(i).centroid;
+            //printf("(%d, %d)\n", newPatches.at(newPatches.size()-1).centroid.x, newPatches.at(newPatches.size()-1).centroid.y);
+            //cin.get();
 
 
-			accumulatedCount = 0;
-			avCenter = Point(0, 0);
+            accumulatedCount = 0;
+            avCenter = Point(0, 0);
 
             newPatches.push_back(patches.at(i+1));
             newMsers.push_back(msers.at(i+1));
-		}
+        }
 
-		avCenter += patches.at(i+1).centroid;
-		accumulatedCount++;
+        avCenter += patches.at(i+1).centroid;
+        accumulatedCount++;
 
     }
 
     patches.clear();
     msers.clear();
 
-    for (unsigned int i = 0; i < newPatches.size(); i++) {
+    for (unsigned int i = 0; i < newPatches.size(); i++)
+    {
         patches.push_back(newPatches.at(i));
         msers.push_back(newMsers.at(i));
     }
 
 }
 
-void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches) {
+void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches)
+{
     // While the number of patches is larger than totalPatches, this function will
     // eliminate the patch that causes the largest change in area of a convex hull fitted to all patch
     // centers, when it's removed
@@ -3385,13 +3825,15 @@ void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
     int maxIndex = 0;
 
     // While there are too many patches
-    while (patches.size() > ((unsigned int)totalPatches)) {
+    while (patches.size() > ((unsigned int)totalPatches))
+    {
         maxDiff = 0;
-		maxIndex = 0;
+        maxIndex = 0;
 
         // calculate total current area
         pointsForArea.clear();
-        for (unsigned int i = 0; i < patches.size(); i++) {
+        for (unsigned int i = 0; i < patches.size(); i++)
+        {
             pointsForArea.push_back(patches.at(i).centroid);
         }
 
@@ -3404,12 +3846,15 @@ void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
 
         //printf("%s << totalArea = %f\n", __FUNCTION__, totalArea);
 
-        for (unsigned int i = 0; i < patches.size(); i++) {
+        for (unsigned int i = 0; i < patches.size(); i++)
+        {
 
             // determine newArea when element i is removed:
             pointsForArea.clear();
-            for (unsigned int j = 0; j < patches.size(); j++) {
-                if (j != i) {
+            for (unsigned int j = 0; j < patches.size(); j++)
+            {
+                if (j != i)
+                {
                     //printf("%s << pushing back... [%d] / %d,%d\n", __FUNCTION__, j, patches.at(j).centroid.x, patches.at(j).centroid.y);
                     pointsForArea.push_back(patches.at(j).centroid);
                 }
@@ -3425,7 +3870,8 @@ void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
             //printf("%s << newArea[%d] = %f\n", __FUNCTION__, i, newArea);
 
             // If the area reduction is maximal, record:
-            if ((totalArea - newArea) > maxDiff) {
+            if ((totalArea - newArea) > maxDiff)
+            {
                 maxDiff = totalArea - newArea;
                 maxIndex = i;
 
@@ -3444,7 +3890,8 @@ void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
     return;
 }
 
-void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches) {
+void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches)
+{
     // TODO:
     // maybe avoid discriminating based on intensity initially - since sometimes with the
     // chessboard you can get large clusters of white squares (and other background features) which
@@ -3471,10 +3918,12 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
     newMsers.push_back(msers.at(msers.size()-1));
     msers.pop_back();
 
-    while (!clusterFound) {
+    while (!clusterFound)
+    {
 
 
-        while (jj < newPatches.size()) {
+        while (jj < newPatches.size())
+        {
 
             // obtain interest point values
             centroidA = newPatches.at(jj).centroid;
@@ -3490,15 +3939,16 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
             minDist = (2*pow(areaA, 0.5))/(1+distVar);
             maxDist = (2*pow(areaA, 0.5))*(1+distVar);
 
-			/*
-			if (DEBUG_MODE > 3) {
-				printf("%s << area = %f; intensity = %f\n", __FUNCTION__, areaA, intensityA);
-				printf("%s << minArea = %f; maxArea = %f\n", __FUNCTION__, minArea, maxArea);
-				printf("%s << minDist = %f; maxDist = %f\n", __FUNCTION__, minDist, maxDist);
-			}
-			*/
+            /*
+            if (DEBUG_MODE > 3) {
+            	printf("%s << area = %f; intensity = %f\n", __FUNCTION__, areaA, intensityA);
+            	printf("%s << minArea = %f; maxArea = %f\n", __FUNCTION__, minArea, maxArea);
+            	printf("%s << minDist = %f; maxDist = %f\n", __FUNCTION__, minDist, maxDist);
+            }
+            */
 
-            while (ii < patches.size()) {
+            while (ii < patches.size())
+            {
                 //printf("jj = %d; ii = %d.\n", jj, ii);
 
                 // obtain comparison point values
@@ -3506,30 +3956,39 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
                 areaB = patches.at(ii).area;
                 intensityB = patches.at(ii).meanIntensity;
 
-				/*
-				if (DEBUG_MODE > 3) {
-					printf("%s << test pt area = %f; test pt intensity = %f\n", __FUNCTION__, areaB, intensityB);
-					waitKey(0);
-				}
-				*/
+                /*
+                if (DEBUG_MODE > 3) {
+                	printf("%s << test pt area = %f; test pt intensity = %f\n", __FUNCTION__, areaB, intensityB);
+                	waitKey(0);
+                }
+                */
 
-				// Series of checks:
+                // Series of checks:
 
                 // Distance check
-                if ((distBetweenPts(centroidA, centroidB) < maxDist) && (distBetweenPts(centroidA, centroidB) > minDist)) {
+                if ((distBetweenPts(centroidA, centroidB) < maxDist) && (distBetweenPts(centroidA, centroidB) > minDist))
+                {
                     // Intensity check
-                    if (abs(intensityA - intensityB) < intensityVar) {
+                    if (abs(intensityA - intensityB) < intensityVar)
+                    {
                         // Area check
-                         if (max(areaA/areaB, areaB/areaA) < (1 + areaVar)) {
+                        if (max(areaA/areaB, areaB/areaA) < (1 + areaVar))
+                        {
                             transferMserElement(newMsers, msers, ii);
                             transferPatchElement(newPatches, patches, ii);
-                        } else {
+                        }
+                        else
+                        {
                             ii++;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         ii++;
                     }
-                } else {
+                }
+                else
+                {
                     ii++;
                 }
             }
@@ -3538,13 +3997,16 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
             ii = 0;
         }
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Cluster Size = %d\n", __FUNCTION__, newMsers.size());
         }
 
         // Test
-        if (newPatches.size() < ((unsigned int)totalPatches)) { // if cluster has too few
-            if (patches.size() >= ((unsigned int)totalPatches)) { // but remaining points are sufficient
+        if (newPatches.size() < ((unsigned int)totalPatches))   // if cluster has too few
+        {
+            if (patches.size() >= ((unsigned int)totalPatches))   // but remaining points are sufficient
+            {
                 newPatches.clear();
                 newMsers.clear();
 
@@ -3554,16 +4016,22 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
                 newMsers.push_back(msers.at(msers.size()-1));
                 msers.pop_back();
 
-            } else {    // and remaining points are insufficient
-                if (DEBUG_MODE > 1) {
+            }
+            else        // and remaining points are insufficient
+            {
+                if (DEBUG_MODE > 1)
+                {
                     printf("%s << No cluster is large enough.\n", __FUNCTION__);
 
                 }
                 return;
             }
-        } else {
+        }
+        else
+        {
             clusterFound = true;
-            if (DEBUG_MODE > 1) {
+            if (DEBUG_MODE > 1)
+            {
                 printf("%s << Cluster found. size = %d.\n", __FUNCTION__, newPatches.size());
 
             }
@@ -3576,14 +4044,16 @@ void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
     patches.clear();
     msers.clear();
 
-    for (unsigned int i = 0; i < newPatches.size(); i++) {
+    for (unsigned int i = 0; i < newPatches.size(); i++)
+    {
         patches.push_back(newPatches.at(i));
         msers.push_back(newMsers.at(i));
     }
 
 }
 
-void transferPatchElement(vector<mserPatch>& dst, vector<mserPatch>& src, int index) {
+void transferPatchElement(vector<mserPatch>& dst, vector<mserPatch>& src, int index)
+{
     // Move from old one to new one
     dst.push_back(src.at(index));
 
@@ -3594,7 +4064,8 @@ void transferPatchElement(vector<mserPatch>& dst, vector<mserPatch>& src, int in
     src.pop_back();
 }
 
-void transferMserElement(vector<vector<Point> >& dst, vector<vector<Point> >& src, int index) {
+void transferMserElement(vector<vector<Point> >& dst, vector<vector<Point> >& src, int index)
+{
     // Move from old one to new one
     dst.push_back(src.at(index));
 
@@ -3605,12 +4076,13 @@ void transferMserElement(vector<vector<Point> >& dst, vector<vector<Point> >& sr
     src.pop_back();
 }
 
-bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers, vector<Point2f>& patchCentres, int mode) {
+bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers, vector<Point2f>& patchCentres, int mode)
+{
     // TODO:
     // Lots of room for improvement here, in terms of both accuracy and speed.
     // For Mode 0: include white squares for as long as possible before applying the “colour” filter.
-            // ensure that colour filter selects the darker of the two “modal” colours
-            // (since a fair few will be white as well)
+    // ensure that colour filter selects the darker of the two “modal” colours
+    // (since a fair few will be white as well)
     // How about some kind of convex vs concave hull comparison? there shouldn't be much difference in area
     //      between these two for a sold square MSER.
     // More specific "TODO"s are included throught this function.
@@ -3635,15 +4107,19 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     int X = x/2, Y = y/2;
     int totalPatches;
 
-    if (mode == 0) {
+    if (mode == 0)
+    {
         // Not fully tested or verified - check QCAT notebook for methodology
         totalPatches = int(floor(( 2*floor(Xdb)*floor(Ydb)+1+floor(Xdb)+floor(Ydb)+(ceil(Xdb)-floor(Xdb))*floor(Ydb)+(ceil(Ydb)-floor(Ydb))*floor(Xdb)+(ceil(Xdb)-floor(Xdb))*(ceil(Ydb)-floor(Ydb)) + 0.01)));
-    } else if (mode == 1) {
+    }
+    else if (mode == 1)
+    {
         totalPatches = X*Y;
     }
 
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << totalPatches = %d\n", __FUNCTION__, totalPatches);
         printf("%s << Patches found before refinement = %d\n", __FUNCTION__, msers.size());
     }
@@ -3651,32 +4127,37 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     // Convert msers to mserPatches (including hulls)
     patches.clear();
-    for (unsigned int i = 0; i < msers.size(); i++) {
-		//printf("%s << i = %d/%d\n", __FUNCTION__, i, msers.size());
+    for (unsigned int i = 0; i < msers.size(); i++)
+    {
+        //printf("%s << i = %d/%d\n", __FUNCTION__, i, msers.size());
 
-		// problem for 2.jpg
-		/*
-		if (i == 98) {
-			for (unsigned int j = 0; j < msers.at(i).size(); j++) {
-				printf("%s << msers.at(%d).at(%d) = %d\n", __FUNCTION__, i, j, msers.at(i).at(j));
-			}
-		}
-		*/
+        // problem for 2.jpg
+        /*
+        if (i == 98) {
+        	for (unsigned int j = 0; j < msers.at(i).size(); j++) {
+        		printf("%s << msers.at(%d).at(%d) = %d\n", __FUNCTION__, i, j, msers.at(i).at(j));
+        	}
+        }
+        */
 
         patches.push_back(mserPatch(msers.at(i), image));
-		//printf("%s << patches.size() = %d\n", __FUNCTION__, patches.size());
+        //printf("%s << patches.size() = %d\n", __FUNCTION__, patches.size());
     }
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         printf("%s << Patches found before shape filter = %d\n", __FUNCTION__, msers.size());
 
         //color = Scalar(255, 255, 0);
         image.copyTo(imCpy);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640) {
+        if (image.cols > 640)
+        {
             resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
             imshow("mainWin", dispMat);
-        } else {
+        }
+        else
+        {
             imshow("mainWin", imCpy);
         }
         waitKey(0);
@@ -3694,22 +4175,27 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     shapeFilter(patches, msers);
 
-    if (DEBUG_MODE > 6) {
+    if (DEBUG_MODE > 6)
+    {
         printf("%s << Patches found after shape filter = %d\n", __FUNCTION__, msers.size());
 
         //color = Scalar(255, 255, 0);
         image.copyTo(imCpy);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640) {
+        if (image.cols > 640)
+        {
             resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
             imshow("mainWin", dispMat);
-        } else {
+        }
+        else
+        {
             imshow("mainWin", imCpy);
         }
         waitKey(0);
     }
 
-    if (DEBUG_MODE > 0) {
+    if (DEBUG_MODE > 0)
+    {
         t = getTickCount() - t;
         printf("%s << Shape Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
     }
@@ -3721,22 +4207,27 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     varianceFilter(patches, msers);
 
-    if (DEBUG_MODE > 6) {
+    if (DEBUG_MODE > 6)
+    {
         printf("%s << Patches found after variance filter = %d\n", __FUNCTION__, msers.size());
 
         //color = Scalar(255, 255, 0);
         image.copyTo(imCpy);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640) {
+        if (image.cols > 640)
+        {
             resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
             imshow("mainWin", dispMat);
-        } else {
+        }
+        else
+        {
             imshow("mainWin", imCpy);
         }
         waitKey(0);
     }
 
-    if (DEBUG_MODE > 0) {
+    if (DEBUG_MODE > 0)
+    {
         t = getTickCount() - t;
         printf("%s << Variance Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
     }
@@ -3748,32 +4239,40 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     enclosureFilter(patches, msers);
 
     // If you've lost too many, return a failure
-    if (patches.size() < ((unsigned int)totalPatches)) {
-        if (DEBUG_MODE > 1) {
+    if (patches.size() < ((unsigned int)totalPatches))
+    {
+        if (DEBUG_MODE > 1)
+        {
             printf("There are an insufficient (%d/%d) number of patches after enclosure filter.\n", msers.size(), totalPatches);
         }
         return false;
     }
 
 
-    if (DEBUG_MODE > 1) {
+    if (DEBUG_MODE > 1)
+    {
         printf("%s << Patches found after enclosure filter = %d\n", __FUNCTION__, msers.size());
     }
 
-    if (DEBUG_MODE > 6) {
+    if (DEBUG_MODE > 6)
+    {
         //image.copyTo(imCpy);
         color = Scalar(0, 255, 0);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640) {
+        if (image.cols > 640)
+        {
             resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
             imshow("mainWin", dispMat);
-        } else {
+        }
+        else
+        {
             imshow("mainWin", imCpy);
         }
         waitKey(0);
     }
 
-    if (DEBUG_MODE > 0) {
+    if (DEBUG_MODE > 0)
+    {
         t = getTickCount() - t;
         printf("%s << Enclosure Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
     }
@@ -3789,9 +4288,11 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     // While the number of msers remaining is greater than the number you want
     // OR there has been no change since the previous cycle
-    while ((msers.size() > ((unsigned int)totalPatches)) && (msers.size() < ((unsigned int)previousPatches))) {
+    while ((msers.size() > ((unsigned int)totalPatches)) && (msers.size() < ((unsigned int)previousPatches)))
+    {
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Looping through filters again...\n", __FUNCTION__);
         }
 
@@ -3801,46 +4302,58 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
         t = getTickCount();
         clusterFilter(patches, msers, totalPatches);
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Patches found after cluster filter = %d\n", __FUNCTION__, msers.size());
         }
 
-        if (DEBUG_MODE > 6) {
+        if (DEBUG_MODE > 6)
+        {
             //color = Scalar(0, 255, 0);
             image.copyTo(imCpy);
             drawContours(imCpy, msers, -1, color, 2);
-            if (image.cols > 640) {
+            if (image.cols > 640)
+            {
                 resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
                 imshow("mainWin", dispMat);
-            } else {
+            }
+            else
+            {
                 imshow("mainWin", imCpy);
             }
             waitKey(0);
         }
 
         // If the cluster was larger than m x n (probably (m x n)+1)
-        if (patches.size() > ((unsigned int)totalPatches)) {
+        if (patches.size() > ((unsigned int)totalPatches))
+        {
             reduceCluster(patches, msers, totalPatches);
         }
 
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Patches remaining after area-based reduction = %d\n", __FUNCTION__, msers.size());
         }
 
-        if (DEBUG_MODE > 6) {
+        if (DEBUG_MODE > 6)
+        {
             //color = Scalar(0, 255, 0);
             image.copyTo(imCpy);
             drawContours(imCpy, msers, -1, color, 2);
-            if (image.cols > 640) {
+            if (image.cols > 640)
+            {
                 resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
                 imshow("mainWin", dispMat);
-            } else {
+            }
+            else
+            {
                 imshow("mainWin", imCpy);
             }
             waitKey(0);
         }
 
-        if (DEBUG_MODE > 0) {
+        if (DEBUG_MODE > 0)
+        {
             t = getTickCount() - t;
             printf("%s << Cluster Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
         }
@@ -3852,14 +4365,18 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     }
 
-    if (DEBUG_MODE > 3) {
+    if (DEBUG_MODE > 3)
+    {
         color = Scalar(255, 0, 0);
         //image.copyTo(imCpy);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640) {
+        if (image.cols > 640)
+        {
             resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
             imshow("mainWin", dispMat);
-        } else {
+        }
+        else
+        {
             imshow("mainWin", imCpy);
         }
         waitKey(0);
@@ -3867,17 +4384,20 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     bool acceptable = false;
 
-    if (msers.size() == totalPatches) {    // if the correct number has now been found, clear the old set and add the new set
+    if (msers.size() == totalPatches)      // if the correct number has now been found, clear the old set and add the new set
+    {
 
         // do some kind of check, to make sure that the last x*y/4 are truly a rectangular pattern
-        if (DEBUG_MODE > 1) {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Pattern believed to be found.\n", __FUNCTION__);
         }
 
 
 
         // Assign patch centres
-        for (unsigned int i = 0; i < patches.size(); i++) {
+        for (unsigned int i = 0; i < patches.size(); i++)
+        {
             patchCentres.push_back(patches.at(i).centroid2f);
         }
 
@@ -3885,13 +4405,19 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
         //acceptable = verifyPatches(image.size(), patternSize, patchCentres, 0, 1000);
 
         return true;
-    } else if (msers.size() > ((unsigned int)totalPatches)) {
-        if (DEBUG_MODE > 1) {
+    }
+    else if (msers.size() > ((unsigned int)totalPatches))
+    {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Too many final patches = %d/%d\n", __FUNCTION__, msers.size(), totalPatches);
         }
         return false;
-    } else {
-        if (DEBUG_MODE > 1) {
+    }
+    else
+    {
+        if (DEBUG_MODE > 1)
+        {
             printf("%s << Too few final patches: %d/%d\n", __FUNCTION__, msers.size(), totalPatches);
         }
         return false;

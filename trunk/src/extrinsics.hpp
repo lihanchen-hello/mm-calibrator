@@ -16,33 +16,33 @@
 
 /// \brief      Calculate the Extended Reprojection Error for the extrinsic case.
 double calculateExtrinsicERE(int nCams,
-                            cv::vector<Point3f>& physicalPoints,
-                            cv::vector< cv::vector< cv::vector<Point2f> > > corners,
-                            Mat *cameraMatrix,
-                            Mat *distCoeffs,
-                            Mat *R,
-                            Mat *T);
+                             cv::vector<Point3f>& physicalPoints,
+                             cv::vector< cv::vector< cv::vector<Point2f> > > corners,
+                             Mat *cameraMatrix,
+                             Mat *distCoeffs,
+                             Mat *R,
+                             Mat *T);
 
 /// \brief      Cut down the given vectors of pointsets to those optimal for extrinsic calibration
 void optimizeCalibrationSets(cv::vector<Size> imSize,
-                            int nCams,
-                            Mat *cameraMatrix,
-                            Mat *distCoeffs,
-                            cv::vector<Mat>& distributionMap,
-                            cv::vector< cv::vector< cv::vector<Point2f> > >& candidateCorners,
-                            cv::vector< cv::vector< cv::vector<Point2f> > >& testCorners,
-                            cv::vector<Point3f> row,
-                            int selection,
-                            int num,
-                            cv::vector<cv::vector<int> >& tagNames,
-                            cv::vector<cv::vector<int> >& selectedTags);
+                             int nCams,
+                             Mat *cameraMatrix,
+                             Mat *distCoeffs,
+                             cv::vector<Mat>& distributionMap,
+                             cv::vector< cv::vector< cv::vector<Point2f> > >& candidateCorners,
+                             cv::vector< cv::vector< cv::vector<Point2f> > >& testCorners,
+                             cv::vector<Point3f> row,
+                             int selection,
+                             int num,
+                             cv::vector<cv::vector<int> >& tagNames,
+                             cv::vector<cv::vector<int> >& selectedTags);
 
 /// \brief      Calculate the scores for a set if pointsets in terms of their contribution to extrinsic calibration
 double obtainMultisetScore(int nCams,
-                            vector<Mat>& distributionMap,
-                            vector<Mat>& binMap,
-                            vector<vector<double> >& distances,
-                            cv::vector<cv::vector<cv::vector<Point2f> > >& corners,
-                            int index);
+                           vector<Mat>& distributionMap,
+                           vector<Mat>& binMap,
+                           vector<vector<double> >& distances,
+                           cv::vector<cv::vector<cv::vector<Point2f> > >& corners,
+                           int index);
 
 #endif
