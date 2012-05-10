@@ -561,7 +561,7 @@ int main(int argc, char* argv[])
                 patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
                 break;
             case MASK_FINDER_CODE:
-                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 1, 6);
+                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, x, y);
                 patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
                 break;
             case HEATED_CHESSBOARD_FINDER_CODE:

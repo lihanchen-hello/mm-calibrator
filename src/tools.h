@@ -5,6 +5,8 @@
 #include "opencv_resources.h"
 #include "sys/time.h"
 
+void convertUcharToBinary(unsigned char val, int* binaryArray);
+
 /// \brief      Calculates perpendicular distance between two "parallel" lines
 double calcLinePerpDistance(double *line1, double *line2);
 
