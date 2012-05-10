@@ -1,5 +1,57 @@
 #include "improc.h"
 
+void adaptiveDownsample(const Mat& src, Mat& dst, int code) {
+	
+	double minVal, maxVal;
+	minMaxLoc(src, &minVal, &maxVal);
+	
+	//printf("%s << min/max = (%f / %f)\n", __FUNCTION__, minVal, maxVal);
+	
+	double percentileVals[3] = { MIN_PROP_THRESHOLD, 0.500, 1 - MIN_PROP_THRESHOLD };
+	double intensityVals[3];
+	
+	double maxDiff, centreVal;
+	
+	findPercentiles(src, intensityVals, percentileVals, 3);
+	
+	double naturalRange = maxVal - minVal;
+	double midVal = intensityVals[1]; // (intensityVals[0] + intensityVals[2]) / 2.0;
+	double halfRange = max(abs(intensityVals[2] - midVal), abs(intensityVals[0] - midVal));
+	double compressionFactor = 1.0;
+	
+	if (code == STANDARD_NORM_MODE) {
+		
+		if (halfRange > 128.0) {
+			compressionFactor = halfRange / 128.0;
+		}
+	
+		minVal = midVal - 128.0*compressionFactor;
+		maxVal = midVal + 128.0*compressionFactor;
+		
+	} else if (code == LOW_CONTRAST_NORM_MODE) {
+		
+		minVal = midVal - halfRange;
+		maxVal = midVal + halfRange;
+		
+	} else {
+		
+		if (halfRange > 128.0) {
+			compressionFactor = halfRange / 128.0;
+		}
+	
+		minVal = midVal - 128.0*compressionFactor;
+		maxVal = midVal + 128.0*compressionFactor;
+		
+	}
+	
+	
+	
+	Mat normMat;
+	normalize_16(normMat, src, minVal, maxVal);
+	down_level(dst, normMat);
+		
+}
+
 double distBetweenPts2f(Point2f& P1, Point2f& P2)
 {
     /*
@@ -787,7 +839,7 @@ void reduceToPureImage(cv::Mat& dst, cv::Mat& src) {
 		}
 }
 
-void normalize_16(Mat& dst, Mat& src, double dblmin, double dblmax) {
+void normalize_16(Mat& dst, const Mat& src, double dblmin, double dblmax) {
 
     unsigned short min, max;
     bool presetLimits = false;

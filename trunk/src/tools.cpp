@@ -1,5 +1,16 @@
 #include "tools.h"
 
+void convertUcharToBinary(unsigned char val, int* binaryArray) {
+    for (int iii = 0; iii < 8; iii++) {
+        if ((int) val >= (int) pow(2, 7-iii)) {
+            binaryArray[iii] = 1;
+            val -= (int) pow(2, 7-iii);
+        } else {
+            binaryArray[iii] = 0;
+        }
+    }
+}
+
 void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat& cameraMatrix, const Mat& distCoeffs, const Mat& newCamMat) {
 
     double fx, fy, ifx, ify, cx, cy;

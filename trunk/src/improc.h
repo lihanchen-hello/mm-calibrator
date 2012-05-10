@@ -24,6 +24,11 @@
 #define CIECOMP2		340
 #define GRAYSCALE		900
 
+#define STANDARD_NORM_MODE 		0
+#define LOW_CONTRAST_NORM_MODE 	1
+
+#define MIN_PROP_THRESHOLD 0.002
+
 void obtainEightBitRepresentation(Mat& src, Mat& dst);
 void obtainColorRepresentation(Mat& src, Mat& dst);
 
@@ -81,9 +86,11 @@ double distBetweenPts2f(Point2f& P1, Point2f& P2);
 void transferElement(vector<Point2f>& dst, vector<Point2f>& src, int index);
 
 /// \brief 		Stretches the histogram to span the whole 16-bit scale (16-bit to 16-bit)
-void normalize_16(Mat& dst, Mat& src, double dblmin = -1.0, double dblmax = -1.0);
+void normalize_16(Mat& dst, const Mat& src, double dblmin = -1.0, double dblmax = -1.0);
 void reduceToPureImage(cv::Mat& dst, cv::Mat& src);
 void fix_bottom_right(Mat& mat);
+
+void adaptiveDownsample(const Mat& src, Mat& dst, int code = STANDARD_NORM_MODE);
 
 bool checkIfActuallyGray(const Mat& im);
 
