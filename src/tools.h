@@ -5,7 +5,17 @@
 #include "opencv_resources.h"
 #include "sys/time.h"
 
+using namespace std;
+
+
+/// \brief      Counts and returns a list of all specified elements within a folder
+int countElementsInFolder(const char* folderName, vector<string>& elementNames, int elementType);
+
 void convertUcharToBinary(unsigned char val, int* binaryArray);
+
+double lookupValue(double xi, double yi, double maxVal, const Mat& lookupMat);
+
+double getInterpolatedVal(const Mat& img, Point2f& coord);
 
 /// \brief      Calculates perpendicular distance between two "parallel" lines
 double calcLinePerpDistance(double *line1, double *line2);

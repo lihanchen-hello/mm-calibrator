@@ -124,7 +124,14 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image)
 
 bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, int detector)
 {
-    return findPatternCorners(image, patternSize, corners, 1, detector);
+	Mat grayIm;
+	if (image.channels() > 1) {
+		cvtColor(image, grayIm, CV_RGB2GRAY);
+	} else {
+		grayIm = Mat(image);
+	}
+	//cout << "ALPHA" << endl;
+    return findPatternCorners(grayIm, patternSize, corners, 1, detector);
 }
 
 bool checkAcutance()
@@ -1330,8 +1337,9 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     determinePatchDistribution(patternSize, mode, patchRows, patchCols, desiredPatchQuantity);
 
     vector<vector<Point> > msers;
+    //cout << "BETA" << endl;
     findAllPatches(image, patternSize, msers);
-
+	//cout << "GAMMA" << endl;
     if (DEBUG_MODE > 2)
     {
         debugDisplayPatches(image, msers);
@@ -3654,7 +3662,8 @@ void varianceFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers)
     vector<mserPatch> newPatches;
     vector<vector<Point> > newMsers;
 
-    double maxAcceptableVariance = 256.0;   // 16 squared...
+    //double maxAcceptableVariance = 256.0;   // 16 squared...
+    double maxAcceptableVariance = 1024.0;   // 32 squared...
 
     for (unsigned int i = 0; i < patches.size(); i++)
     {
@@ -3811,6 +3820,8 @@ void enclosureFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers)
 
 void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches)
 {
+	
+	
     // While the number of patches is larger than totalPatches, this function will
     // eliminate the patch that causes the largest change in area of a convex hull fitted to all patch
     // centers, when it's removed
@@ -3889,10 +3900,74 @@ void reduceCluster(vector<mserPatch>& patches, vector<vector<Point> >& msers, in
     }
 
     return;
+    
 }
 
 void clusterFilter(vector<mserPatch>& patches, vector<vector<Point> >& msers, int totalPatches)
 {
+	// Try new approach which removes the most abnormal patch based on differences with median
+	
+	vector<double> patchAreas, patchAreasSorted;
+	
+	for (unsigned int iii = 0; iii < patches.size(); iii++) {
+		
+		patchAreas.push_back(patches.at(iii).area);
+		
+	}
+	
+	while (patches.size() > ((unsigned int)totalPatches)) {
+		
+		// Determine medians:
+		patchAreasSorted.clear();
+		patchAreasSorted.insert(patchAreasSorted.end(), patchAreas.begin(), patchAreas.end());
+		sort(patchAreasSorted.begin(), patchAreasSorted.end());
+		
+		double medianVal = patchAreas.at(int(patchAreasSorted.size() / 2));
+		
+		//printf("%s << medianVal = %f\n", __FUNCTION__, medianVal);
+		
+		double maxDiff = -1.0;;
+		int maxDiffIndex = -1;
+		
+		for (unsigned int iii = 0; iii < patchAreasSorted.size(); iii++) {
+		
+			if ((abs(patchAreasSorted.at(iii) - medianVal)) > maxDiff) {
+				maxDiff = abs(patchAreasSorted.at(iii) - medianVal);
+				maxDiffIndex = iii;
+			}
+			
+			//printf("%s << area(%d) = %f (diff = %f\n", __FUNCTION__, iii, patchAreas.at(iii), abs(patchAreas.at(iii) - medianVal));
+			
+		}
+		
+		//printf("%s << maxDiffIndex = %d / %d\n", __FUNCTION__, maxDiffIndex, patchAreasSorted.size());
+		
+		double badArea = patchAreasSorted.at(maxDiffIndex);
+		
+		
+		bool culpritFound = false;
+		unsigned int iii = 0;
+		while (!culpritFound) {
+			//printf("%s << iii = (%d / %d)\n", __FUNCTION__, iii, patchAreas.size());
+			if (patchAreas.at(iii) == badArea) {
+				culpritFound = true;
+			} else {
+				iii++;
+			}
+		}
+		
+		patchAreasSorted.erase(patchAreasSorted.begin() + maxDiffIndex);
+		patchAreas.erase(patchAreas.begin() + iii);
+
+		patches.erase(patches.begin() + iii);
+		msers.erase(msers.begin() + iii);
+		
+		
+	}
+	
+	
+	return;
+	
     // TODO:
     // maybe avoid discriminating based on intensity initially - since sometimes with the
     // chessboard you can get large clusters of white squares (and other background features) which
@@ -4130,37 +4205,17 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     patches.clear();
     for (unsigned int i = 0; i < msers.size(); i++)
     {
-        //printf("%s << i = %d/%d\n", __FUNCTION__, i, msers.size());
-
-        // problem for 2.jpg
-        /*
-        if (i == 98) {
-        	for (unsigned int j = 0; j < msers.at(i).size(); j++) {
-        		printf("%s << msers.at(%d).at(%d) = %d\n", __FUNCTION__, i, j, msers.at(i).at(j));
-        	}
-        }
-        */
-
         patches.push_back(mserPatch(msers.at(i), image));
-        //printf("%s << patches.size() = %d\n", __FUNCTION__, patches.size());
     }
 
     if (DEBUG_MODE > 3)
     {
-        printf("%s << Patches found before shape filter = %d\n", __FUNCTION__, msers.size());
+        printf("%s << Patches found before filtering = %d\n", __FUNCTION__, msers.size());
 
         //color = Scalar(255, 255, 0);
         image.copyTo(imCpy);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640)
-        {
-            resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
-            imshow("mainWin", dispMat);
-        }
-        else
-        {
-            imshow("mainWin", imCpy);
-        }
+        imshow("mainWin", imCpy);
         waitKey(0);
     }
 
@@ -4175,42 +4230,33 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     t = getTickCount();
 
     shapeFilter(patches, msers);
-
-    if (DEBUG_MODE > 6)
-    {
-        printf("%s << Patches found after shape filter = %d\n", __FUNCTION__, msers.size());
-
-        //color = Scalar(255, 255, 0);
-        image.copyTo(imCpy);
-        drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640)
-        {
-            resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
-            imshow("mainWin", dispMat);
-        }
-        else
-        {
-            imshow("mainWin", imCpy);
-        }
-        waitKey(0);
-    }
-
+    
     if (DEBUG_MODE > 0)
     {
         t = getTickCount() - t;
         printf("%s << Shape Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
+        printf("%s << Patches found after shape filter = %d\n", __FUNCTION__, msers.size());
     }
+
+    if (DEBUG_MODE > 6)
+    {
+        image.copyTo(imCpy);
+        drawContours(imCpy, msers, -1, color, 2);
+        imshow("mainWin", imCpy);
+        waitKey(0);
+    }
+
+    
     // ==============================END OF SHAPE FILTER
 
     // ==============================VARIANCE FILTER
-
+	/*
     t = getTickCount();
 
     varianceFilter(patches, msers);
 
     if (DEBUG_MODE > 6)
     {
-        printf("%s << Patches found after variance filter = %d\n", __FUNCTION__, msers.size());
 
         //color = Scalar(255, 255, 0);
         image.copyTo(imCpy);
@@ -4231,7 +4277,9 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     {
         t = getTickCount() - t;
         printf("%s << Variance Filter duration: %fms\n", __FUNCTION__, t*1000/getTickFrequency());
+        printf("%s << Patches found after variance filter = %d\n", __FUNCTION__, msers.size());
     }
+    */
     // ==============================END OF VARIANCE FILTER
 
     // ==============================ENCLOSURE FILTER
@@ -4257,18 +4305,10 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     if (DEBUG_MODE > 6)
     {
-        //image.copyTo(imCpy);
+        image.copyTo(imCpy);
         color = Scalar(0, 255, 0);
         drawContours(imCpy, msers, -1, color, 2);
-        if (image.cols > 640)
-        {
-            resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
-            imshow("mainWin", dispMat);
-        }
-        else
-        {
-            imshow("mainWin", imCpy);
-        }
+        imshow("mainWin", imCpy);
         waitKey(0);
     }
 
@@ -4313,15 +4353,7 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
             //color = Scalar(0, 255, 0);
             image.copyTo(imCpy);
             drawContours(imCpy, msers, -1, color, 2);
-            if (image.cols > 640)
-            {
-                resize(imCpy, dispMat, Size(0,0), 0.5, 0.5);
-                imshow("mainWin", dispMat);
-            }
-            else
-            {
-                imshow("mainWin", imCpy);
-            }
+            imshow("mainWin", imCpy);
             waitKey(0);
         }
 
