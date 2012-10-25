@@ -4,42 +4,112 @@
 #include "general_resources.h"
 #include "opencv_resources.h"
 
+#include <opencv2/video/video.hpp>
+
 #include "tools.h"
+
+#ifdef __CLAHE_HEADER__
+    #include "clahe.h"
+#endif
 
 /// \brief		ID for custom mapping
 #define CUSTOM			3
 #define MAP_LENGTH		1024
 
-#define RAINBOW			100
-#define IRON			110
-#define JET				120
-#define BLUERED			130
-#define BLUERED2		132
-#define ICE				140
-#define ICEIRON			150
-#define BLACKBODY		300
-#define CIECOMP			310
-#define IRON2			320
-#define RAINBOW2		330
-#define CIECOMP2		340
-#define GRAYSCALE		900
+#define GRAYSCALE		0
 
-#define STANDARD_NORM_MODE 		0
-#define LOW_CONTRAST_NORM_MODE 	1
+#define CIECOMP			100
+#define CIECOMP_ALT_1	110
+#define CIECOMP_ALT_2	120
+#define CIECOMP_ALT_3	130
+
+#define BLACKBODY		150
+
+#define RAINBOW			200
+#define RAINBOW_ALT_1	210
+#define RAINBOW_ALT_2	220
+#define RAINBOW_ALT_3	230
+#define RAINBOW_ALT_4	240
+
+#define IRON			300
+#define IRON_ALT_1		310
+#define IRON_ALT_2		320
+#define IRON_ALT_3		330
+
+#define BLUERED			400
+#define BLUERED_ALT_1	410
+#define BLUERED_ALT_2	420
+
+#define JET				500
+#define JET_ALT_1		510
+
+#define ICE				600
+#define ICE_ALT_1		610
+#define ICE_ALT_2		620
+#define ICE_ALT_3		630
+
+#define ICEIRON			700
+#define ICEIRON_ALT_1	710
+#define ICEIRON_ALT_2	720
+
+#define ICEFIRE			800
+#define ICEFIRE_ALT_1	810
+#define ICEFIRE_ALT_2	820
+#define ICEFIRE_ALT_3	830
+
+#define REPEATED		900
+#define REPEATED_ALT_1	910
+#define REPEATED_ALT_2	920
+#define REPEATED_ALT_3	930
+#define REPEATED_ALT_4	940
+#define REPEATED_ALT_5	950
+#define REPEATED_ALT_6	960
+
+#define STANDARD_NORM_MODE 				0
+#define LOW_CONTRAST_NORM_MODE 			1
+#define CLAHE							2
+#define ADAPTIVE_CONTRAST_ENHANCEMENT 	3
+
+#define NO_FILTERING 					0
+#define GAUSSIAN_FILTERING 				1
+#define BILATERAL_FILTERING 			2
 
 #define MIN_PROP_THRESHOLD 0.002
+
+void weightedMixture(Mat& dst, const cv::vector<Mat>& srcs, const std::vector<double>& weightings);
+
+void addBorder(Mat& inputMat, int borderSize);
+
+void normalize_64_vec(Mat& dst, Mat& src);
+
+void mixImages(Mat& dst, cv::vector<Mat>& images);
+
+bool rectangle_contains_centroid(cv::Rect mainRectangle, cv::Rect innerRectangle);
+Rect meanRectangle(vector<Rect>& rectangles);
+void clusterRectangles(vector<Rect>& rectangles, double minOverlap);
+
+cv::Point rectangle_center(cv::Rect input);
+
+double rectangleOverlap(Rect rectangle1, Rect rectangle2);
 
 void obtainEightBitRepresentation(Mat& src, Mat& dst);
 void obtainColorRepresentation(Mat& src, Mat& dst);
 
+/// \brief      Trims the top/bottom or sides of the image to get the correct ratio
+void trimToDimensions(Mat& image, int width, int height);
+
 /// \brief      Very basic image cropping
 void cropImage(Mat& image, cv::Point tl, cv::Point br);
+
+void drawGrid(const Mat& src, Mat& dst, int mode = 0);
 
 /// \brief 		Convert a vector from 'Point' format to 'Point2f' format
 void convertVectorToPoint2f(vector<cv::Point>& input, vector<Point2f>& output);
 
 /// \brief      Convert a vector from 'Point2f' format to 'Point' format
 void convertVectorToPoint(vector<Point2f>& input, vector<cv::Point>& output);
+
+void splitMultimodalImage(const Mat& src, Mat& therm, Mat& vis);
 
 /// \brief      Finds centroid of a contour
 cv::Point findCentroid(vector<cv::Point>& contour);
@@ -87,10 +157,15 @@ void transferElement(vector<Point2f>& dst, vector<Point2f>& src, int index);
 
 /// \brief 		Stretches the histogram to span the whole 16-bit scale (16-bit to 16-bit)
 void normalize_16(Mat& dst, const Mat& src, double dblmin = -1.0, double dblmax = -1.0);
+void histExpand8(const Mat& src, Mat& dst);
 void reduceToPureImage(cv::Mat& dst, cv::Mat& src);
 void fix_bottom_right(Mat& mat);
 
-void adaptiveDownsample(const Mat& src, Mat& dst, int code = STANDARD_NORM_MODE);
+void fixedDownsample(const Mat& src, Mat& dst, double center, double range);
+
+void adaptiveContrastEnhancement(const Mat& src, Mat& dst, double factor = 0.0, int filter = NO_FILTERING);
+void downsampleCLAHE(const Mat& src, Mat& dst, double factor, int filter = NO_FILTERING);
+void adaptiveDownsample(const Mat& src, Mat& dst, int code = STANDARD_NORM_MODE, double factor = 0.0, int filter = NO_FILTERING);
 
 bool checkIfActuallyGray(const Mat& im);
 
@@ -100,9 +175,11 @@ void findPercentiles(const Mat& img, double *vals, double *percentiles, unsigned
 
 /// \brief      Obtains histogram and other image statistics
 void generateHistogram(Mat& src, Mat& dst, double* im_hist, double* im_summ, double* im_stat);
-	
+
 /// \brief 		16-bit to 8-bit
 void down_level(Mat& dst, Mat& src);
+
+void applyIntensityShift(const Mat& src1, Mat& dst1, const Mat& src2, Mat& dst2, double grad, double shift);
 
 Mat normForDisplay(Mat origMat);
 
@@ -124,7 +201,7 @@ protected:
 	int		length;
 	/// \brief		Code identifying which map is being used [see load_standard() function]
 	int		code;
-	
+
 	/// \brief		Lookup table which shows what colour intensities correspond to what raw intensities
 	unsigned char	lookupTable_1[256][3];
 	unsigned short	lookupTable_2[65536][3];
@@ -132,7 +209,7 @@ protected:
 public:
 	/// \brief 		Constructor.
 	cScheme();
-	
+
 
 
 	/// \brief 		Constructor.
@@ -154,7 +231,7 @@ public:
 
 	/// \brief		Recreates lookup table
 	void setupLookupTable(unsigned int depth = 65536);
-	
+
 	/// \brief 		Create and apply a new colour map as the scheme.
 	/// \param 		r		Pointer to red weightings
 	/// \param 		g		Pointer to green weightings
@@ -177,7 +254,7 @@ public:
 	/// \param 		params		Pointer to double values dictating the following parameters:
 	///							[0] : minimum lightness (default = 0.2)
 	///							[1] : maximum lightness (default = 0.8)
-	void fuse_image(cv::Mat& thermIm, cv::Mat& visualIm, cv::Mat& outputIm, double* params);
+	void fuse_image(cv::Mat& thermIm, cv::Mat& visualIm, cv::Mat& outputIm, double *params = NULL);
 
 	/// \brief 		Returns code for current scheme.
 	/// \param 		output		0 = rainbow, 1 = iron, 2 = jet, 3 = custom
@@ -188,8 +265,8 @@ public:
 	/// \param 		dim_i		Width
 	/// \param 		dim_j		Height
 	void image_resize(cv::Mat& inputIm, int dim_i, int dim_j);
-	
-	
+
+
 };
 
 #endif

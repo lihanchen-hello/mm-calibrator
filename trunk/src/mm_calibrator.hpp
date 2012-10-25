@@ -10,12 +10,12 @@
 #ifndef MM_CALIBRATOR_HPP
 #define MM_CALIBRATOR_HPP
 
-#include "../../shared-src/calibration.hpp"
-#include "../../shared-src/intrinsics.hpp"
-#include "../../shared-src/extrinsics.hpp"
+#include "calibration.hpp"
+#include "intrinsics.hpp"
+#include "extrinsics.hpp"
 
 //#include "cv_utils.hpp"
-#include "../../shared-src/improc.h"
+#include "improc.h"
 
 #include <opencv2/opencv.hpp>
 

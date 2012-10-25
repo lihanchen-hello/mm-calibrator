@@ -1,6 +1,6 @@
 #include "intrinsics.hpp"
 
-double calculateERE( const Mat& image,
+double calculateERE( Size imSize,
                      cv::vector<Point3f>& physicalPoints,
                      cv::vector< cv::vector<Point2f> >& corners,
                      const Mat& cameraMatrix,
@@ -8,14 +8,7 @@ double calculateERE( const Mat& image,
                      double errValues[])
 {
 
-    Size imSize = image.size();
-
-    Mat debugImage(image.size(), image.type());
-
     double *errors_in_x, *errors_in_y;
-
-    //errors_in_x = new double[corners.size() * corners.at(0).size()];
-    //errors_in_y = new double[corners.size() * corners.at(0).size()];
 
     bool tmpErrorValuesOnly = false;
 
@@ -62,26 +55,8 @@ double calculateERE( const Mat& image,
 
             // Expand the vector between the actual and predicted points
             predictedDec = imageDec + 3*(predictedDec - imageDec);
-
-            if (min(min(imageDec.x, imageDec.y), min(predictedDec.x, predictedDec.y)) > 0)
-            {
-                if ((max(imageDec.x, predictedDec.x) < image.cols) && (max(imageDec.y, predictedDec.y) < image.rows))
-                {
-                    //line(debugImage, imageDec, predictedDec, CV_RGB(255, 0, 0));
-                }
-            }
-
-
-            //double length = pow(pow(imageDec.x-predictedDec.x, 2)+pow(imageDec.y-predictedDec.y, 2), 0.5);
-
-            //errors_in_x[i*cornerSet.size()+j] = abs(corners.at(i).at(j).x - cornerSet.at(j).x);
-            //errors_in_y[i*cornerSet.size()+j] = abs(corners.at(i).at(j).y - cornerSet.at(j).y);
-            //errValues[i*cornerSet.size()+j] = pow(pow(errors_in_x[i*cornerSet.size()+j], 2)+pow(errors_in_y[i*cornerSet.size()+j], 2), 0.5);
-
         }
 
-        //imshow("debugWin", debugImage);
-        //waitKey(0);
 
     }
 
@@ -143,25 +118,24 @@ double calculateERE( const Mat& image,
     return err;
 }
 
-void optimizeCalibrationSet(const Mat& image,
-                            Mat& distributionMap,
+void optimizeCalibrationSet(Size imSize,
                             cv::vector< cv::vector<Point2f> >& candidatePatterns,
                             cv::vector< cv::vector<Point2f> >& testPatterns,
                             cv::vector<Point3f> row,
+                            vector<int>& selectedTags,
                             int selection,
                             int num,
-                            double *radialDistribution,
-                            cv::vector<int>& tagNames,
-                            cv::vector<int>& selectedTags)
+                            bool debugMode) 
 {
-
-    Size imSize = image.size();
-
+	
+	//printf("%s << ENTERED.\n", __FUNCTION__);
+							
     selectedTags.clear();
+    
+    Mat distributionMap;
 
     // If no optimization is desired
-    if (selection == 0)
-    {
+    if (selection == 0) {
         return;
     }
 
@@ -173,7 +147,6 @@ void optimizeCalibrationSet(const Mat& image,
     Mat cameraMatrix = Mat::eye(3, 3, CV_64F);
     Mat distCoeffs = Mat(1, 8, CV_64F);
     cv::vector<Mat> rvecs, tvecs;
-    //Size imSize(distributionMap.size());
 
     // Pointset Variables
     cv::vector< cv::vector<Point2f> > candidatePatternsCpy;
@@ -232,6 +205,8 @@ void optimizeCalibrationSet(const Mat& image,
     double median, p90, p99;
 
     double *values;
+    
+    //printf("%s << ENTERED. (%d)\n", __FUNCTION__, 0);
 
     values = new double[num*nTrials];
 
@@ -254,12 +229,22 @@ void optimizeCalibrationSet(const Mat& image,
     bool alreadyUsed;
 
     int newRandomNum;
+    
+    double radialDistribution[RADIAL_LENGTH];
+    
+    vector<int> tagNames;
+    
+    for (unsigned int iii = 0; iii < candidatePatterns.size(); iii++) {
+		tagNames.push_back(iii);
+	}
 
     // Clear radial distribution array
     for (int i = 0; i < RADIAL_LENGTH; i++)
     {
         radialDistribution[i] = 0.0;
     }
+    
+    //printf("%s << ENTERED. (%d)\n", __FUNCTION__, 1);
 
     switch (selection)
     {
@@ -357,6 +342,7 @@ void optimizeCalibrationSet(const Mat& image,
     case ENHANCED_MCM_OPTIMIZATION_CODE:     //        MULTIPLE-TRIAL OPTIMAL FRAME SELECTION
         // ==================================================
 
+		//printf("%s << ENTERED. (%d)\n", __FUNCTION__, 2);
         selectedFrames.clear();
 
         unrankedScores = new double[candidatePatternsCpy.size()];
@@ -408,11 +394,13 @@ void optimizeCalibrationSet(const Mat& image,
 
                         //printf("%s << objectPoints.size() = %d; tempFrameTester.size() = %d\n", __FUNCTION__, objectPoints.size(), tempFrameTester.size());
 
+						//printf("%s << imSize = (%d, %d); objectPoints.at(0).size() = %d; tempFrameTester.at(0).size() = %d\n", __FUNCTION__, imSize.height, imSize.width, objectPoints.at(0).size(), tempFrameTester.at(0).size());
+
                         calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
 
                         //printf("%s << objectPoints.at(0).size() = %d; fullSetCorners.size() = %d\n", __FUNCTION__, objectPoints.at(0).size(), fullSetCorners.size());
 
-                        err = calculateERE(image, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+                        err = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
                         //printf("%s << err = %f\n", __FUNCTION__, err);
                     }
                     else
@@ -425,6 +413,8 @@ void optimizeCalibrationSet(const Mat& image,
 
                 unrankedScores[i] = err;
                 //printf("%s << score = %f\n", __FUNCTION__, err);
+                
+                
 
             }
 
@@ -443,7 +433,7 @@ void optimizeCalibrationSet(const Mat& image,
 
             unrankedScores[bestIndex] = 9e50;
 
-            printf("%s << Best score for %d frame calibration: %f\n", __FUNCTION__, N+1, bestScore);
+            //printf("%s << Best score for %d frame calibration: %f\n", __FUNCTION__, N+1, bestScore);
 
             selectedFrames.push_back(candidatePatternsCpy.at(bestIndex));
 
@@ -460,12 +450,16 @@ void optimizeCalibrationSet(const Mat& image,
                 prevBestScore = bestScore;
                 optimumNum = N;
             }
+            
+            if (debugMode) {
+				printf("%s << (%d) frames considered; best generalized error = (%f)\n", __FUNCTION__, N, prevBestScore);
+			}
 
         }
 
         delete[] unrankedScores;
 
-        printf("%s << Optimum number of frames for calibration = %d\n", __FUNCTION__, optimumNum+1);
+        //printf("%s << Optimum number of frames for calibration = %d\n", __FUNCTION__, optimumNum+1);
 
         candidatePatterns.clear();
         candidatePatterns.assign(selectedFrames.begin(), selectedFrames.begin() + optimumNum+1);
@@ -474,6 +468,8 @@ void optimizeCalibrationSet(const Mat& image,
         {
             selectedTags.push_back(tagNames.at(addedIndices.at(i)));
         }
+        
+        //printf("%s << ENTERED. (%d)\n", __FUNCTION__, 3);
 
         break;
         // ==================================================
@@ -535,7 +531,7 @@ void optimizeCalibrationSet(const Mat& image,
 
             calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
 
-            currentSeedScore = calculateERE(image, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+            currentSeedScore = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
 
             if (currentSeedScore < bestSeedScore)
             {
@@ -618,7 +614,7 @@ void optimizeCalibrationSet(const Mat& image,
 
                         //printf("%s << objectPoints.at(0).size() = %d; fullSetCorners.size() = %d\n", __FUNCTION__, objectPoints.at(0).size(), fullSetCorners.size());
 
-                        err = calculateERE(image, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+                        err = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
                         //printf("%s << err = %f\n", __FUNCTION__, err);
                     }
                     else
@@ -733,7 +729,7 @@ void optimizeCalibrationSet(const Mat& image,
                 Mat fovMat, errMat;
                 double fovScore, errScore;
 
-                err = calculateERE(image, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+                err = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
 
                 if (err < topScore)
                 {
@@ -806,7 +802,7 @@ void optimizeCalibrationSet(const Mat& image,
 
                 Mat fovMat, errMat;
                 double fovScore, errScore;
-                err = calculateERE(image, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+                err = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
 
                 values[N*nTrials+k] = err;
 

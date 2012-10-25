@@ -25,19 +25,17 @@ using namespace std;
 using namespace cv;
 
 /// \brief      Cut down the given vector of pointsets to those optimal for calibration
-void optimizeCalibrationSet(const Mat& image,
-                            Mat& distributionMap,
-                            cv::vector< cv::vector<Point2f> >& candidateCorners,
-                            cv::vector< cv::vector<Point2f> >& testCorners,
+void optimizeCalibrationSet(Size imSize,
+                            cv::vector< cv::vector<Point2f> >& candidatePatterns,
+                            cv::vector< cv::vector<Point2f> >& testPatterns,
                             cv::vector<Point3f> row,
-                            int selection,
-                            int num,
-                            double *radialDistribution,
-                            cv::vector<int>& tagNames,
-                            cv::vector<int>& selectedTags);
+                            cv::vector<int>& selectedTags,
+                            int selection = ENHANCED_MCM_OPTIMIZATION_CODE,
+                            int num = 10,
+                            bool debugMode = false);
 
 /// \brief      Calculate the Extended Reprojection Error: The reprojection error over a desired set of frames.
-double calculateERE(const Mat& image,
+double calculateERE(Size imSize,
                     cv::vector<Point3f>& physicalPoints,
                     cv::vector< cv::vector<Point2f> >& corners,
                     const Mat& cameraMatrix,

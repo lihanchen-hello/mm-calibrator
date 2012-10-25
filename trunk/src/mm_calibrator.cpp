@@ -652,7 +652,8 @@ int main(int argc, char* argv[])
 
             printf("%s << Optimizing Pattern Set...\n", __FUNCTION__);
             // Optimize which frames to use here, replacing the corners vector and other vectors with new set
-            optimizeCalibrationSet(inputMat[nnn], distributionMap.at(nnn), candidatesList[nnn], intrinsicsList, row, optimizationCode, min((int)maxPatternsPerSet, (int)intrinsicsList.size()), radialDistribution, tagNames[nnn], selectedTags[nnn]);
+            //optimizeCalibrationSet(inputMat[nnn], distributionMap.at(nnn), candidatesList[nnn], intrinsicsList, row, optimizationCode, min((int)maxPatternsPerSet, (int)intrinsicsList.size()), radialDistribution, tagNames[nnn], selectedTags[nnn]);
+			optimizeCalibrationSet(inputMat[nnn].size(), candidatesList[nnn], candidatesList[nnn], row, selectedTags[nnn]);
 
             cv::vector< cv::vector<Point3f> > objectPoints;
             cv::vector<Mat> rvecs, tvecs;
@@ -688,7 +689,8 @@ int main(int argc, char* argv[])
             double *errValues;
             errValues = new double[intrinsicsList.size() * intrinsicsList.at(0).size()];
 
-            extendedReprojError = calculateERE(inputMat[nnn], objectPoints.at(0), intrinsicsList, cameraMatrix[nnn], distCoeffs[nnn], errValues);
+            //extendedReprojError = calculateERE(inputMat[nnn], objectPoints.at(0), intrinsicsList, cameraMatrix[nnn], distCoeffs[nnn], errValues);
+			extendedReprojError = calculateERE(inputMat[nnn].size(), objectPoints.at(0), candidatesList[nnn], cameraMatrix[nnn], distCoeffs[nnn], errValues);
 
             printf("%s << Full-sequence MRE = %f\n", __FUNCTION__, extendedReprojError);
 
@@ -756,7 +758,7 @@ int main(int argc, char* argv[])
                     if (inputIsFolder)
                     {
                         //sprintf(inputFilename, "%s%d.%s", input, i+1, "jpg");
-                        sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
+                        //sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
                         inputMat[nnn] = imread(inputFilename);
 
                     }
