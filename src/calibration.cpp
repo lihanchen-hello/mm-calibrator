@@ -1,5 +1,25 @@
 #include "calibration.hpp"
 
+mserParameterGroup::mserParameterGroup() {
+	delta = MSER_delta;
+	max_variation = MSER_max_variation;
+	min_diversity = MSER_min_diversity;
+	max_evolution = MSER_max_evolution;
+	area_threshold = MSER_area_threshold;
+	min_margin = MSER_min_margin;
+	edge_blur_size = MSER_edge_blur_size;
+}
+
+mserParameterGroup::mserParameterGroup(double delta_, double max_variation_, double min_diversity_, int max_evolution_, double area_threshold_, double min_margin_, int edge_blur_size_) {
+	delta = delta_;
+	max_variation = max_variation_;
+	min_diversity = min_diversity_;
+	max_evolution = max_evolution_;
+	area_threshold = area_threshold_;
+	min_margin = min_margin_;
+	edge_blur_size = edge_blur_size_;
+}
+
 void generateRandomIndexArray(int * randomArray, int maxElements, int maxVal)
 {
 
@@ -122,8 +142,11 @@ mserPatch::mserPatch(vector<Point>& inputHull, const Mat& image)
     // get variance of pixel intensity
 }
 
-bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, int detector)
+bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, mserParameterGroup mserParams, double correctionFactor, int detector)
 {
+	
+	//printf("%s << correctionFactor = (%f)\n", __FUNCTION__, correctionFactor);
+	
 	Mat grayIm;
 	if (image.channels() > 1) {
 		cvtColor(image, grayIm, CV_RGB2GRAY);
@@ -131,7 +154,11 @@ bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corn
 		grayIm = Mat(image);
 	}
 	//cout << "ALPHA" << endl;
-    return findPatternCorners(grayIm, patternSize, corners, 1, detector);
+	
+	// Convert pattern size from squares to corners
+	Size cornersSize(2*patternSize.width, 2*patternSize.height);
+		
+    return findPatternCorners(grayIm, cornersSize, corners, 1, mserParams, correctionFactor, detector);
 }
 
 bool checkAcutance()
@@ -158,7 +185,7 @@ void determinePatchDistribution(Size patternSize, int mode, int &rows, int &cols
 
 }
 
-void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers)
+void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers, mserParameterGroup mserParams)
 {
 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 0);
@@ -180,7 +207,11 @@ void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& 
     //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 1);
 
     // 15
-    MSER mserExtractor(7.5, minArea, maxArea, 0.25, 0.2, 200, 1.01, 0.003, 5); // delta = 8, max var = 0.1
+    //MSER mserExtractor(7.5, minArea, maxArea, 0.25, 0.2, 200, 1.01, 0.003, 5); // delta = 8, max var = 0.1
+   
+	if (DEBUG_MODE > 1) printf("%s << MSER params = (%f, %f, %f, ...)\n", __FUNCTION__, mserParams.delta, mserParams.max_variation, mserParams.min_diversity);
+   
+    MSER mserExtractor(mserParams.delta, minArea, maxArea, mserParams.max_variation, mserParams.min_diversity, mserParams.max_evolution, mserParams.area_threshold, mserParams.min_margin, mserParams.edge_blur_size); // delta = 8, max var = 0.1
     /*
     cvMSERParams(int delta = 5, int min_area = 60, int max_area = 14400, \n"
     	"    float max_variation = .25, float min_diversity = .2, \n"
@@ -1117,14 +1148,9 @@ void sortPatches(Size imageSize, Size patternSize, vector<Point2f>& patchCentres
 
     int desiredPatchCount, X, Y;
 
-    if (mode == 0)
-    {
-        desiredPatchCount = (patternSize.width + 1)*(patternSize.height + 1);
-    }
-    else
-    {
-        desiredPatchCount = (patternSize.width / 2)*(patternSize.height / 2);
-    }
+	
+    if (mode == 0) desiredPatchCount = (patternSize.width + 1)*(patternSize.height + 1);
+    else desiredPatchCount = (patternSize.width / 2)*(patternSize.height / 2);
 
     if (DEBUG_MODE > 3)
     {
@@ -1323,8 +1349,11 @@ void debugDisplayPattern(const Mat& image, Size patternSize, Mat& corners, bool 
     waitKey(0);
 }
 
-bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, int detector)
+bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, mserParameterGroup mserParams, double correctionFactor, int detector)
 {
+	
+	//printf("%s << correctionFactor = (%f)\n", __FUNCTION__, correctionFactor);
+	
     // mode 0: MSER chessboard finder
     // mode 1: MSER mask finder
 
@@ -1338,7 +1367,7 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
 
     vector<vector<Point> > msers;
     //cout << "BETA" << endl;
-    findAllPatches(image, patternSize, msers);
+    findAllPatches(image, patternSize, msers, mserParams);
 	//cout << "GAMMA" << endl;
     if (DEBUG_MODE > 2)
     {
@@ -1362,15 +1391,9 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     bool found = refinePatches(image, patternSize, msers, patchCentres2f, mode);
 
 
-    if (DEBUG_MODE > 1)
-    {
-        printf("%s << Patches found after refinement = %d\n", __FUNCTION__, msers.size());
-    }
+    if (DEBUG_MODE > 1) printf("%s << Patches found after refinement = %d\n", __FUNCTION__, msers.size());
 
-    if (DEBUG_MODE > 2)
-    {
-        debugDisplayPatches(image, msers);
-    }
+    if (DEBUG_MODE > 2) debugDisplayPatches(image, msers);
 
 
 
@@ -1379,10 +1402,7 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     {
         corners.clear();
 
-        if (DEBUG_MODE > 1)
-        {
-            printf("%s << Correct number of patches not found. Returning.\n", __FUNCTION__);
-        }
+        if (DEBUG_MODE > 1) printf("%s << Correct number of patches not found. Returning.\n", __FUNCTION__);
 
         return false;
     }
@@ -1402,6 +1422,8 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
 
         return false;
     }
+    
+    if (DEBUG_MODE > 1) printf("%s << Reached here. (%d)\n", __FUNCTION__, 0);
 
     sortPatches(image.size(), patternSize, patchCentres2f, mode);
 
@@ -1409,9 +1431,12 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     {
         Mat patchCentres_(patchCentres2f);
         debugDisplayPattern(image, cvSize(patchCols, patchRows), patchCentres_);
+        waitKey(0);
     }
 
     found = verifyPatches(image.size(), patternSize, patchCentres2f, mode, 0, 1000);
+    
+    if (DEBUG_MODE > 1) printf("%s << Reached here. (%d)\n", __FUNCTION__, 1);
 
     if (!found)
     {
@@ -1427,6 +1452,8 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
 
     // Correct patch centres (using histogram equalisation, single-frame calibration)
     correctPatchCentres(image, patternSize, patchCentres2f, mode);
+    
+    if (DEBUG_MODE > 1) printf("%s << Reached here. (%d)\n", __FUNCTION__, 2);
 
     if (DEBUG_MODE > 2)
     {
@@ -1435,7 +1462,9 @@ bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& cor
     }
 
     Mat homography;
-    found = findPatchCorners(image, patternSize, homography, corners, patchCentres2f, mode, detector);
+    found = findPatchCorners(image, patternSize, homography, corners, patchCentres2f, correctionFactor, mode, detector);
+
+	if (DEBUG_MODE > 1) printf("%s << Reached here. (%d)\n", __FUNCTION__, 3);
 
     // refineCornerPositions
     //fixFourCorners(image, corners, patternSize);
@@ -1938,13 +1967,12 @@ double obtainSetScore(Mat& distributionMap,
     return score;
 }
 
-bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, int mode, int detector)
+bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, double correctionFactor, int mode, int detector)
 {
+	
+	//printf("%s << correctionFactor = (%f)\n", __FUNCTION__, correctionFactor);
 
-    if (DEBUG_MODE > 2)
-    {
-        printf("%s << Entered function...\n", __FUNCTION__);
-    }
+    if (DEBUG_MODE > 1) printf("%s << Entered function...\n", __FUNCTION__);
 
     Mat inputDisp;
 
@@ -1955,12 +1983,14 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     interpolateCornerLocations2(image, mode, patternSize, vvOriginalCentres.at(0), cornerEstimates);
 
     //estimateUnknownPositions(XXX, vvOriginalCentres.at(0), XXX, cornerEstimates);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 0);
 
     if (DEBUG_MODE > 2)
     {
         Mat cornersForDisplay(cornerEstimates);
         printf("%s << Step 3: cornerEstimates.size() = %d\n", __FUNCTION__, cornerEstimates.size());
-        debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
+        debugDisplayPattern(image, cvSize(patternSize.width*2, patternSize.height*2), cornersForDisplay);
         printf("%s << DONE.\n", __FUNCTION__);
     }
 
@@ -1970,8 +2000,12 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     //cornerEstimates.copyTo(innerCornerEstimates);
 
     sortCorners(image.size(), patternSize, cornerEstimates);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 1);
 
     findBestCorners(image, cornerEstimates, corners, patternSize, detector);
+
+	if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 2);
 
     //correctInnerCorners(innerCornerEstimates, cornerEstimates, )
 
@@ -1984,8 +2018,12 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     bool retVal = false;
 
     // sortCorners(image.size(), patternSize, corners);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 3);
 
     retVal = verifyCorners(image.size(), patternSize, corners, 0, 1000);
+
+	if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 4);
 
     if (!retVal)
     {
@@ -1994,20 +2032,29 @@ bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vecto
     }
 
     groupPointsInQuads(patternSize, corners);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 5);
 
-    refineCornerPositions(image, patternSize, corners);
+    refineCornerPositions(image, patternSize, corners, correctionFactor);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 6);
+    
     sortCorners(image.size(), patternSize, corners);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 7);
 
-    if (DEBUG_MODE > 3)
-    {
+    if (DEBUG_MODE > 3) {
         Mat cornersForDisplay(corners);
         debugDisplayPattern(image, cvSize(patternSize.width, patternSize.height), cornersForDisplay);
+        
     }
 
     // 6. verify...
 
     //printf("%s << patternSize = (%d, %d)\n", __FUNCTION__, patternSize.width, patternSize.height);
     retVal = verifyCorners(image.size(), patternSize, corners, 0, 1000);
+    
+    if (DEBUG_MODE > 1) printf("%s << Here: (%d)\n", __FUNCTION__, 8);
 
     if (!retVal)
     {
@@ -2030,8 +2077,10 @@ bool verifyCorners(Size imSize, Size patternSize, vector<Point2f>& patternPoints
     return verifyPattern(imSize, patternSize, simplePoints, minDist, maxDist);
 }
 
-void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners)
+void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners, double correctionFactor)
 {
+	
+	//printf("%s << correctionFactor = (%f)\n", __FUNCTION__, correctionFactor);
 
     Mat imGrey;
 
@@ -2057,7 +2106,7 @@ void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& 
 
     double minDimension = findMinimumSeparation(vCorners);
 
-    int correctionDistance = int(minDimension) / 2.0;
+    int correctionDistance = int(minDimension * correctionFactor);
     //printf("%s << correctionDistance = %d\n", __FUNCTION__, correctionDistance);
     //cin.get();
 
@@ -3308,7 +3357,7 @@ void redistortPoints(const vector<Point2f>& src, vector<Point2f>& dst, const Mat
     // dst.assign(src.begin(), src.end());
 }
 */
-bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& centres, int mode)
+bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& centres, int mode, mserParameterGroup mserParams)
 {
     // mode 0: MSER chessboard finder
     // mode 1: MSER mask finder
@@ -3322,7 +3371,7 @@ bool findPatternCentres(const Mat& image, Size patternSize, vector<Point2f>& cen
     determinePatchDistribution(patternSize, mode, patchRows, patchCols, desiredPatchQuantity);
 
     vector<vector<Point> > msers;
-    findAllPatches(image, patternSize, msers);
+    findAllPatches(image, patternSize, msers, mserParams);
 
     if (DEBUG_MODE > 3)
     {
@@ -4185,12 +4234,18 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
 
     if (mode == 0)
     {
+		
+		if (DEBUG_MODE > 1) printf("%s << Chessboard mode.\n", __FUNCTION__);
+		
         // Not fully tested or verified - check QCAT notebook for methodology
         totalPatches = int(floor(( 2*floor(Xdb)*floor(Ydb)+1+floor(Xdb)+floor(Ydb)+(ceil(Xdb)-floor(Xdb))*floor(Ydb)+(ceil(Ydb)-floor(Ydb))*floor(Xdb)+(ceil(Xdb)-floor(Xdb))*(ceil(Ydb)-floor(Ydb)) + 0.01)));
     }
     else if (mode == 1)
     {
+		
         totalPatches = X*Y;
+        
+        if (DEBUG_MODE > 1) printf("%s << Mask mode. Looking for (%d) (%d, %d) : (%d, %d)\n", __FUNCTION__, totalPatches, x, y, X, Y);
     }
 
 
@@ -4416,6 +4471,8 @@ bool refinePatches(const Mat& image, Size patternSize, vector<vector<Point> >& m
     }
 
     bool acceptable = false;
+    
+    if (DEBUG_MODE > 1) printf("%s << msers.size() = (%d); totalPatches = (%d); patternSize = (%d, %d)\n", __FUNCTION__, msers.size(), totalPatches, patternSize.width, patternSize.height);
 
     if (msers.size() == totalPatches)      // if the correct number has now been found, clear the old set and add the new set
     {

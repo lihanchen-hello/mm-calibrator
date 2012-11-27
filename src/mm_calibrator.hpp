@@ -42,8 +42,8 @@ const mode_t DEFAULT_MKDIR_PERMISSIONS = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
 #define DEFAULT_ALPHA 0.00
 
-#define RANDOM_CONSTANT 1
-#define PARENT_DEBUG 1
+#define RANDOM_CONSTANT 		1
+#define DEFAULT_DEBUG_MODE 		0
 
 using namespace cv;
 using namespace std;
@@ -76,10 +76,13 @@ static void usage(const char *argv0)
     printf("-q, --video                                 Input (and output) is video.\n");
     printf("-u, --undistort                             Undistort images.\n");
     printf("-w, --write                                 Write undistorted images.\n");
+    printf("-v, --verbose                               Display more debug info.\n");
+    printf("-p, --parameters                            File containing MSER parameters.\n");
+    printf("-c, --correction                            Fraction of separation between squares to form corner search radius.\n");
     printf("\nIf parameters are missing, defaults are used. However, if no parameters are provided, the user will be prompted.\n");
 }
 
-bool promptUserForParameters(char * directory, int numCams, bool wantsIntrinsics, bool wantsExtrinsics, int patternFinderCode, int maxPatternsToKeep, int maxPatternsPerSet, double gridSize, int x, int y, bool wantsToDisplay, int optimizationCode, bool wantsToUndistort, bool wantsToWrite, bool inputIsFolder) {
+bool promptUserForParameters(char * directory, int numCams, bool wantsIntrinsics, bool wantsExtrinsics, int patternFinderCode, int maxPatternsToKeep, int maxPatternsPerSet, double gridSize, int x, int y, bool wantsToDisplay, int optimizationCode, bool wantsToUndistort, bool wantsToWrite, bool inputIsFolder, bool verboseMode) {
 
     int optionSelected = -1;
 
@@ -111,6 +114,25 @@ bool promptUserForParameters(char * directory, int numCams, bool wantsIntrinsics
     return true;
 
 
+}
+
+void obtainMSERparameters(char *filename, mserParameterGroup &mserParams) {
+	
+	fstream file_io;
+	
+	file_io.open(filename);
+	
+	file_io >> mserParams.delta;
+	file_io >> mserParams.max_variation;
+	file_io >> mserParams.min_diversity;
+	file_io >> mserParams.max_evolution;
+	file_io >> mserParams.area_threshold;
+	file_io >> mserParams.min_margin;
+	file_io >> mserParams.edge_blur_size;
+	
+	
+	file_io.close();
+	
 }
 
 #endif

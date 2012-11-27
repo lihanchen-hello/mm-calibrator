@@ -16,6 +16,8 @@
 #define ABSOLUTE_MAX_FRAMES_TO_STORE 1000
 #define RADIAL_LENGTH 1000
 
+#define INTRINSICS_HPP_DEBUG_MODE 0
+
 //#include "cv_utils.hpp"
 #include "improc.h"
 #include "calibration.hpp"

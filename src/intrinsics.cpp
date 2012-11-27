@@ -128,7 +128,7 @@ void optimizeCalibrationSet(Size imSize,
                             bool debugMode) 
 {
 	
-	//printf("%s << ENTERED.\n", __FUNCTION__);
+	if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d].\n", __FUNCTION__, 0);
 							
     selectedTags.clear();
     
@@ -170,6 +170,8 @@ void optimizeCalibrationSet(Size imSize,
     Mat binMap(30, 40, CV_32SC1);
     Mat binTemp(binMap.size(), CV_8UC1);
     binMap.setTo(0);
+    
+    if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d].\n", __FUNCTION__, 1);
 
     // Scoring Variables
     double score, maxScore = 0.0;
@@ -245,6 +247,8 @@ void optimizeCalibrationSet(Size imSize,
     }
     
     //printf("%s << ENTERED. (%d)\n", __FUNCTION__, 1);
+    
+    if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d] (%d)\n", __FUNCTION__, 2, selection);
 
     switch (selection)
     {
@@ -341,6 +345,8 @@ void optimizeCalibrationSet(Size imSize,
         // ==================================================
     case ENHANCED_MCM_OPTIMIZATION_CODE:     //        MULTIPLE-TRIAL OPTIMAL FRAME SELECTION
         // ==================================================
+        
+        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d] \n", __FUNCTION__, 10);
 
 		//printf("%s << ENTERED. (%d)\n", __FUNCTION__, 2);
         selectedFrames.clear();
@@ -350,20 +356,30 @@ void optimizeCalibrationSet(Size imSize,
         prevBestScore = 9e50;
 
         //printf("%s << num = %d\n", __FUNCTION__, num);
+        
+        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d] \n", __FUNCTION__, 11);
 
         for (int N = 0; N < num; N++)
         {
+			
+			if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d]\n", __FUNCTION__, 11, N, 0);
 
             objectPoints.push_back(row);
+            
+            if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d]\n", __FUNCTION__, 11, N, 1);
 
             //printf("%s << candidatePatternsCpy.size() = %d\n", __FUNCTION__, candidatePatternsCpy.size());
 
             for (unsigned int i = 0; i < candidatePatternsCpy.size(); i++)
             {
+				
+				if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 0);
 
                 tempFrameTester.clear();
                 tempFrameTester.assign(selectedFrames.begin(), selectedFrames.end());
                 tempFrameTester.push_back(candidatePatternsCpy.at(i));
+                
+                if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 1);
 
                 bool alreadyAdded = false;
 
@@ -375,6 +391,8 @@ void optimizeCalibrationSet(Size imSize,
                         //printf("%s << WTF?\n", __FUNCTION__);
                     }
                 }
+                
+                if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 2);
 
                 if (alreadyAdded == true)
                 {
@@ -382,34 +400,50 @@ void optimizeCalibrationSet(Size imSize,
                 }
                 else
                 {
+					
+					if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 30);
 
                     randomNum = rand() % 1000 + 1;  // random number between 1 and 1000 (inclusive)
 
                     Mat fovMat, errMat;
                     double fovScore, errScore;
+                    
+                    if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 31);
 
                     if (randomNum > (1 - testingProbability)*1000.0)
                     {
-                        //printf("%s << Calibrating pattern #%d\n", __FUNCTION__, i);
+						
+						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 32);
+						
+                        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << Calibrating pattern #%d\n", __FUNCTION__, i);
 
-                        //printf("%s << objectPoints.size() = %d; tempFrameTester.size() = %d\n", __FUNCTION__, objectPoints.size(), tempFrameTester.size());
+                        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << objectPoints.size() = %d; tempFrameTester.size() = %d\n", __FUNCTION__, objectPoints.size(), tempFrameTester.size());
 
-						//printf("%s << imSize = (%d, %d); objectPoints.at(0).size() = %d; tempFrameTester.at(0).size() = %d\n", __FUNCTION__, imSize.height, imSize.width, objectPoints.at(0).size(), tempFrameTester.at(0).size());
+						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << imSize = (%d, %d); objectPoints.at(0).size() = %d; tempFrameTester.at(0).size() = %d\n", __FUNCTION__, imSize.height, imSize.width, objectPoints.at(0).size(), tempFrameTester.at(0).size());
 
                         calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+
+						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 33);
 
                         //printf("%s << objectPoints.at(0).size() = %d; fullSetCorners.size() = %d\n", __FUNCTION__, objectPoints.at(0).size(), fullSetCorners.size());
 
                         err = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
+                        
+                        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 34);
                         //printf("%s << err = %f\n", __FUNCTION__, err);
                     }
                     else
                     {
+						
+						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 35);
+						
                         // If the frame is not to be tested (more likely with lower testingProbability)
                         err = -1.0;
                     }
 
                 }
+                
+                if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 3);
 
                 unrankedScores[i] = err;
                 //printf("%s << score = %f\n", __FUNCTION__, err);
@@ -417,6 +451,8 @@ void optimizeCalibrationSet(Size imSize,
                 
 
             }
+            
+            if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d]\n", __FUNCTION__, 11, N, 2);
 
             bestScore = 9e50;
             bestIndex = 0;
@@ -430,6 +466,8 @@ void optimizeCalibrationSet(Size imSize,
                     bestIndex = j;
                 }
             }
+            
+            if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d]\n", __FUNCTION__, 11, N, 3);
 
             unrankedScores[bestIndex] = 9e50;
 
@@ -454,10 +492,14 @@ void optimizeCalibrationSet(Size imSize,
             if (debugMode) {
 				printf("%s << (%d) frames considered; best generalized error = (%f)\n", __FUNCTION__, N, prevBestScore);
 			}
+			
+			if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d]\n", __FUNCTION__, 11, N, 4);
 
         }
 
         delete[] unrankedScores;
+        
+        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d] \n", __FUNCTION__, 12);
 
         //printf("%s << Optimum number of frames for calibration = %d\n", __FUNCTION__, optimumNum+1);
 
@@ -468,6 +510,8 @@ void optimizeCalibrationSet(Size imSize,
         {
             selectedTags.push_back(tagNames.at(addedIndices.at(i)));
         }
+        
+        if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d] \n", __FUNCTION__, 13);
         
         //printf("%s << ENTERED. (%d)\n", __FUNCTION__, 3);
 
@@ -707,7 +751,7 @@ void optimizeCalibrationSet(Size imSize,
 
             possibleCombos = factorial(candidatePatternsCpy.size()) / (factorial(N+1) * factorial(candidatePatternsCpy.size() - N - 1));
 
-            printf("%s << possibleCombos = %d\n", __FUNCTION__, possibleCombos);
+            printf("%s << possibleCombos = %u\n", __FUNCTION__, (unsigned int) possibleCombos);
 
             currentIndices.clear();
 
@@ -844,6 +888,8 @@ void optimizeCalibrationSet(Size imSize,
 
         return;
     }
+    
+    if (INTRINSICS_HPP_DEBUG_MODE > 0)  printf("%s << DEBUG [%d].\n", __FUNCTION__, 99);
 
 
     delete[] values;

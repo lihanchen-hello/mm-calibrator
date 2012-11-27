@@ -67,10 +67,34 @@
 #define MAX_CANDIDATE_PATTERNS  100
 #define MAX_PATTERNS_PER_SET    10
 
+#define DEFAULT_CORRECTION_FACTOR 0.5
+
+// DEFAULT MSER SETTINGS
+#define MSER_delta				7.5
+#define MSER_max_variation		0.25
+#define MSER_min_diversity		0.20
+#define MSER_max_evolution		200
+#define MSER_area_threshold		1.01
+#define MSER_min_margin			0.003
+#define MSER_edge_blur_size		5
+
 #define PATCH_CORRECTION_INTRINSICS_FLAGS CV_CALIB_RATIONAL_MODEL
 
 using namespace std;
 using namespace cv;
+
+struct mserParameterGroup {
+	double delta;
+	double max_variation;
+	double min_diversity;
+	int max_evolution;
+	double area_threshold;
+	double min_margin;
+	int edge_blur_size;
+	
+	mserParameterGroup();
+	mserParameterGroup(double delta_, double max_variation_, double min_diversity_, int max_evolution_, double area_threshold_, double min_margin_, int edge_blur_size_);
+};
 
 /// \brief		Class enables for storing an MSER feature beyond simply its bounding points
 class mserPatch
@@ -164,7 +188,7 @@ void interpolateCornerLocations2(const Mat& image, int mode, Size patternSize, v
 void groupPointsInQuads(Size patternSize, vector<Point2f>& corners);
 
 /// \brief      Refines positions of corners through iterative local homography mappings
-void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners);
+void refineCornerPositions(const Mat& image, Size patternSize, vector<Point2f>& vCorners, double correctionFactor);
 
 /// \brief      Initial attempt to correct locations of all corners based on estimates from MSER centroids
 void initialRefinementOfCorners(const Mat& imGrey, vector<Point2f>& src, Size patternSize);
@@ -185,16 +209,16 @@ bool verifyPatches(Size imSize, Size patternSize, vector<Point2f>& patchCentres,
 bool correctPatchCentres(const Mat& image, Size patternSize, vector<Point2f>& patchCentres, int mode);
 
 /// \brief 		Estimates the co-ordinates of the corners of the patches
-bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, int mode, int detector = 0);
+bool findPatchCorners(const Mat& image, Size patternSize, Mat& homography, vector<Point2f>& corners, vector<Point2f>& patchCentres2f, double correctionFactor, int mode, int detector = 0);
 
 /// \brief 		MSER-clustering mask corner locater
-bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, int detector = 0);
+bool findMaskCorners_1(const Mat& image, Size patternSize, vector<Point2f>& corners, mserParameterGroup mserParams, double correctionFactor, int detector = 0);
 
 /// \brief 		Core pattern-finding function
-bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, int detector = 0);
+bool findPatternCorners(const Mat& image, Size patternSize, vector<Point2f>& corners, int mode, mserParameterGroup mserParams, double correctionFactor, int detector = 0);
 
 /// \brief 		Find all patches (MSERS - using default settings) in an image
-void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers);
+void findAllPatches(const Mat& image, Size patternSize, vector<vector<Point> >& msers, mserParameterGroup mserParams);
 
 /// \brief 		Finds (or simulates) the edge patches in a pattern
 void findEdgePatches(Size patternSize, int mode, int *XVec, int *YVec, vector<Point2f>& patchCentres, vector<Point2f>& remainingPatches);

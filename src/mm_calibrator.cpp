@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
     // Undistortion Parameters
     double alpha = DEFAULT_ALPHA;
 
-    char *directory;
+    char *directory, *parametersFile;
     int numCams = DEFAULT_CAM_COUNT;
     bool wantsIntrinsics = false;
     bool wantsExtrinsics = false;
@@ -19,9 +19,14 @@ int main(int argc, char* argv[])
     bool wantsToDisplay = true;
     bool wantsToUndistort = false;
     bool wantsToWrite = false;
+    double correctionFactor = DEFAULT_CORRECTION_FACTOR;
 
     // Currently only contains support for input being in the form of a folder (and maybe AVI video)
     bool inputIsFolder = true;
+    
+    bool verboseMode = DEFAULT_DEBUG_MODE;
+    
+    bool providedMSERparams = false;
 
     // --------------------------------------------- PARSING
     //printf("%s << Parsing arguments...\n", __FUNCTION__);
@@ -35,7 +40,7 @@ int main(int argc, char* argv[])
     {
         bool parameterSupply = false;
         directory = (char*) malloc(256);
-        parameterSupply = promptUserForParameters(directory, numCams, wantsIntrinsics, wantsExtrinsics, patternFinderCode, maxPatternsToKeep, maxPatternsPerSet, gridSize, x, y, wantsToDisplay, optimizationCode, wantsToUndistort, wantsToWrite, inputIsFolder);
+        parameterSupply = promptUserForParameters(directory, numCams, wantsIntrinsics, wantsExtrinsics, patternFinderCode, maxPatternsToKeep, maxPatternsPerSet, gridSize, x, y, wantsToDisplay, optimizationCode, wantsToUndistort, wantsToWrite, inputIsFolder, verboseMode);
 
         if (parameterSupply == false) {
             printf("%s << Using default parameters...\n", __FUNCTION__);
@@ -46,7 +51,7 @@ int main(int argc, char* argv[])
     {
 
 
-        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uh")) != -1)
+        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uhvp:c:")) != -1)
         {
 
             switch (c)
@@ -75,6 +80,9 @@ int main(int argc, char* argv[])
             case 'g':
                 gridSize = atof(optarg);
                 break;
+			case 'c':
+				correctionFactor = atof(optarg);
+                break;
             case 'x':
                 x = atoi(optarg);
                 break;
@@ -98,7 +106,14 @@ int main(int argc, char* argv[])
                 break;
             case 'h':
                 usage(argv[0]);
-                break;
+                return 1;
+            case 'v':
+                verboseMode = true;
+                break;  
+			case 'p':
+                parametersFile = optarg;
+                providedMSERparams = true;
+                break; 
             default:
                 printf("Invalid option -%c\n", c);
                 printf("Run %s -h for help.\n", argv[0]);
@@ -133,7 +148,7 @@ int main(int argc, char* argv[])
     printf("%s << Calculating extrinsics? %d\n", __FUNCTION__, wantsExtrinsics);
     printf("%s << Pattern Finder Code = %d\n", __FUNCTION__, patternFinderCode);
     printf("%s << Max frames to load = %d; Max patterns to keep = %d; Max patterns per set = %d\n", __FUNCTION__, maxFramesToLoad, maxPatternsToKeep, maxPatternsPerSet);
-    printf("%s << Pattern dimensions: Squares are %fmm wide, with [%d x %d] calibration points\n", __FUNCTION__, gridSize, x, y);
+    printf("%s << Pattern dimensions: Squares are %fmm wide, with [%d x %d] squares\n", __FUNCTION__, gridSize, x, y);
     printf("%s << Wants to display? %d\n", __FUNCTION__, wantsToDisplay);
     printf("%s << Optimization Code = %d\n", __FUNCTION__, optimizationCode);
     printf("%s << Wants to undistort? %d\n", __FUNCTION__, wantsToUndistort);
@@ -307,9 +322,10 @@ int main(int argc, char* argv[])
             maxFramesToLoad = std::min((int)inputList[0].size(), (int)maxFramesToLoad);
             printf("%s << maxFramesToLoad = %d\n", __FUNCTION__, maxFramesToLoad);
 
-            //culledList.assign(inputList[0].begin(), inputList[0].end());
+            culledList.assign(inputList[0].begin(), inputList[0].end());
 
-            culledList.swap(inputList[0]);
+            //culledList.swap(inputList[0]);
+			//copy(inputList[0].begin(), inputList[0].begin() + inputList[0].size(), culledList.begin());
 
             randomCulling(culledList, maxFramesToLoad);
 
@@ -461,13 +477,21 @@ int main(int argc, char* argv[])
     cv::vector<Point2f> cornerSet;
     cv::vector<cv::vector<Point2f> > cornersList[MAX_CAMS];
 
-    for (int i = 0; i < y; i++)
-    {
-        for (int j = 0; j < x; j++)
-        {
-            row.push_back(Point3f(i*gridSize, j*gridSize, 0.0));
-        }
-    }
+	if (patternFinderCode == MASK_FINDER_CODE) {
+		for (int i = 0; i < 2*y; i++) {
+			for (int j = 0; j < 2*x; j++) {
+				row.push_back(Point3f(i*gridSize, j*gridSize, 0.0));
+			}
+		}
+	} else {
+		for (int i = 0; i <= y; i++) {
+			for (int j = 0; j <= x; j++) {
+				row.push_back(Point3f(i*gridSize, j*gridSize, 0.0));
+			}
+		}
+	}
+
+    
 
     char filename[128];
 
@@ -482,6 +506,13 @@ int main(int argc, char* argv[])
     vector<bool> foundRecord[MAX_CAMS];
 
     int index = 0, frameIndex = 0;
+    
+    mserParameterGroup mserParams;
+    
+    if (providedMSERparams) {
+		obtainMSERparameters(parametersFile, mserParams);
+	}
+    
     // --------------------------------------------- THE PATTERN SEARCH
 
     // Run through each camera separately to find the patterns
@@ -513,14 +544,18 @@ int main(int argc, char* argv[])
             if (inputIsFolder)
             {
                 //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 3);
-                printf("%s << inStream[nnn] = %s\n", __FUNCTION__, inStream[nnn]);
+                
                 //printf("%s << CL = %s\n", __FUNCTION__, (culledList.at(index)).c_str());
 
                 sprintf(filename, "%s%s", inStream[nnn], (culledList.at(index)).c_str());
                 //printf("%s << filename = %s\n", __FUNCTION__, filename);
                 //cin.get();
+                
+                if (verboseMode) printf("%s << reading [%d] = %s\n", __FUNCTION__, nnn, filename);
+                
                 inputMat[nnn] = imread(filename);
-                //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 4);
+                
+                if (verboseMode) printf("%s << File read.\n", __FUNCTION__);
             }
             else
             {
@@ -536,6 +571,8 @@ int main(int argc, char* argv[])
             //printf("%s << filename = %s\n", __FUNCTION__, filename);
 
             allImages[nnn].push_back(inputMat[nnn]);
+            
+            if (verboseMode) printf("%s << Image pushed back.\n", __FUNCTION__);
 
             //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 5);
 
@@ -562,7 +599,7 @@ int main(int argc, char* argv[])
                 break;
             case MASK_FINDER_CODE:
                 //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, x, y);
-                patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
+                patternFound = findMaskCorners_1(inputMat[nnn], cvSize(x,y), cornerSet, mserParams, correctionFactor, PATTERN_FINDER_CV_CORNER_SUBPIX_FLAG);
                 break;
             case HEATED_CHESSBOARD_FINDER_CODE:
                 invertMatIntensities(inputMat[nnn], tmpMat);
@@ -573,12 +610,19 @@ int main(int argc, char* argv[])
                 patternFound = findChessboardCorners(inputMat[nnn], cvSize(x,y), cornerSet);
                 break;
             }
+            
+             if (verboseMode) printf("%s << Pattern searched for. Result = (%d); cornerSet.size() = (%d)\n", __FUNCTION__, patternFound, cornerSet.size());
 
             //printf("%s << Pattern found? %d\n", __FUNCTION__, patternFound);
 
             inputMat[nnn].copyTo(dispMat);
 
-            drawChessboardCorners(dispMat, cvSize(x, y), Mat(cornerSet), patternFound);
+			if (patternFinderCode == MASK_FINDER_CODE) {
+				drawChessboardCorners(dispMat, cvSize(2*x, 2*y), Mat(cornerSet), patternFound);
+			} else {
+				drawChessboardCorners(dispMat, cvSize(x, y), Mat(cornerSet), patternFound);
+			}
+            
 
             if (wantsToDisplay)
             {
@@ -744,7 +788,7 @@ int main(int argc, char* argv[])
 #endif
 
 
-                printf("%s << Undistorting Images...\n", __FUNCTION__);
+                printf("%s << Undistorting Images... (%d)\n", __FUNCTION__, inputList[nnn].size());
                 Mat undistortedMat(inputMat[nnn].size(), CV_8UC3);
 
                 //videoReader.set(CV_CAP_PROP_POS_AVI_RATIO, 0.00);
@@ -754,11 +798,13 @@ int main(int argc, char* argv[])
 
                 for (int i = 0; i < inputList[nnn].size(); i++)
                 {
+					
+					
 
                     if (inputIsFolder)
                     {
                         //sprintf(inputFilename, "%s%d.%s", input, i+1, "jpg");
-                        //sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
+                        sprintf(inputFilename, "%s%s", inStream[nnn], (inputList[nnn].at(i)).c_str());
                         inputMat[nnn] = imread(inputFilename);
 
                     }
@@ -766,6 +812,8 @@ int main(int argc, char* argv[])
                     {
                         //videoReader >> inputMat;
                     }
+                    
+                    //printf("%s << Undistorting (%s)...\n", __FUNCTION__, inputFilename);
 
                     undistort(inputMat[nnn], undistortedMat, cameraMatrix[nnn], distCoeffs[nnn], newCamMat[nnn]);
 
