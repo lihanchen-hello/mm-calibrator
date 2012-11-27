@@ -1,0 +1,10 @@
+double delta;
+double max_variation;
+double min_diversity;
+int max_evolution;
+double area_threshold;
+double min_margin;
+int edge_blur_size;
+
+# FURTHER INFO
+http://docs.opencv.org/modules/features2d/doc/feature_detection_and_description.html#mser
