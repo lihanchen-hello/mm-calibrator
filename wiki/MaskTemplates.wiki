@@ -6,5 +6,7 @@ For our experiments, the mask was cut out using a laser cutter. This laser cutte
 
 = Templates =
 
-  * [http://dl.dropbox.com/u/28723659/grid.pdf 4x6,20mm Mask (PDF)]
-  * [http://dl.dropbox.com/u/28723659/thermalMask.cdr 4x6,20mm Mask (CDR)]
+  * [http://dl.dropbox.com/u/28723659/grid.pdf A4 4x6 Mask (PDF)]
+  * [http://dl.dropbox.com/u/28723659/thermalMask.cdr A4 4x6 Mask (CDR)]
+  * [http://dl.dropbox.com/u/28723659/a2_grid.pdf A2 4x6 Mask (PDF)]
+  * [http://dl.dropbox.com/u/28723659/a2_grid.svg A2 4x6 Mask (SVG)]
