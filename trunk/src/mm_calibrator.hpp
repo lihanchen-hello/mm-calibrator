@@ -52,34 +52,35 @@ static void usage(const char *argv0)
 {
     printf("Usage: %s [options]\n", argv0);
     printf("Supported options:\n");
-    printf("-d, --directory                             Parent directory or video address.\n");
-    printf("-n, --number                                Number of cameras to calibrate.\n");
-    printf("-i, --intrinsics                            Option to calculate intrinsics.\n");
-    printf("-e, --extrinsics                            Option to calculate extrinsics.\n");
-    printf("-t, --type                                  Pattern type:\n\
-                                                        [0] Regular chessboard\n\
-                                                        [1] Mask\n\
-                                                        [2] Thermal chessboard\n");
-    printf("-a, --patterns                              Max number of patterns to keep.\n");
-    printf("-b, --setsize                               Max number of patterns per set.\n");
-    printf("-g, --gridsize                              Side length of square in mm.\n");
-    printf("-x, --xcount                                Number of squares in x direction.\n");
-    printf("-y, --ycount                                Number of squares in y direction.\n");
-    printf("-s, --show                                  Show intermediate results.\n");
-    printf("-o, --optimization                          Optimization method:\n\
-                                                        [0] All found patterns\n\
-                                                        [1] Random set of patterns\n\
-                                                        [2] First N patterns\n\
-                                                        [3] Enhanced MCM\n\
-                                                        [4] Best of random trials\n\
-                                                        [5] Exhaustive search\n");
-    printf("-q, --video                                 Input (and output) is video.\n");
-    printf("-u, --undistort                             Undistort images.\n");
-    printf("-w, --write                                 Write undistorted images.\n");
-    printf("-v, --verbose                               Display more debug info.\n");
-    printf("-p, --parameters                            File containing MSER parameters.\n");
-    printf("-c, --correction                            Fraction of separation between squares to form corner search radius.\n");
-    printf("\nIf parameters are missing, defaults are used. However, if no parameters are provided, the user will be prompted.\n");
+    printf("	-d	Parent directory or video address.\n");
+    printf("	-n	Number of cameras to calibrate.\n");
+    printf("	-i	Option to calculate intrinsics.\n");
+    printf("	-e	Option to calculate extrinsics.\n");
+    printf("	-t	Pattern type:\n\
+			[0] Regular chessboard\n\
+			[1] Mask\n\
+			[2] Thermal chessboard\n");
+    printf("	-a	Max number of patterns to keep.\n");
+    printf("	-b	Max number of patterns per set.\n");
+    printf("	-g	Side length of square in mm.\n");
+    printf("	-x	Number of squares in x direction.\n");
+    printf("	-y	Number of squares in y direction.\n");
+    printf("	-s	Show intermediate results.\n");
+    printf("	-o	Optimization method:\n\
+			[0] All found patterns\n\
+			[1] Random set of patterns\n\
+			[2] First N patterns\n\
+			[3] Enhanced MCM\n\
+			[4] Best of random trials\n\
+			[5] Exhaustive search\n");
+    printf("	-q	Input (and output) is video.\n");
+    printf("	-u	Undistort images.\n");
+    printf("	-z	Write original images with pattern overlayed.\n");
+    printf("	-w	Write undistorted images.\n");
+    printf("	-v	Display more debug info.\n");
+    printf("	-p	File containing MSER parameters.\n");
+    printf("	-c	Fraction of separation between squares to form corner search radius.\n");
+    printf("If parameters are missing, defaults are used. However, if no parameters are provided, the user will be prompted.\n\n");
 }
 
 bool promptUserForParameters(char * directory, int numCams, bool wantsIntrinsics, bool wantsExtrinsics, int patternFinderCode, int maxPatternsToKeep, int maxPatternsPerSet, double gridSize, int x, int y, bool wantsToDisplay, int optimizationCode, bool wantsToUndistort, bool wantsToWrite, bool inputIsFolder, bool verboseMode) {

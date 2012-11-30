@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
     bool wantsToUndistort = false;
     bool wantsToWrite = false;
     double correctionFactor = DEFAULT_CORRECTION_FACTOR;
+    bool outputFoundPatterns = false;
 
     // Currently only contains support for input being in the form of a folder (and maybe AVI video)
     bool inputIsFolder = true;
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
     opterr = 0;
     int c;
 
-    printf("%s << Parsing arguments...\n", __FUNCTION__);
+    printf("\n%s << Parsing arguments...\n", __FUNCTION__);
 
     if (argc == 1)
     {
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
     {
 
 
-        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uhvp:c:")) != -1)
+        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uhvp:c:z")) != -1)
         {
 
             switch (c)
@@ -76,6 +77,9 @@ int main(int argc, char* argv[])
                 break;
             case 'b':
                 maxPatternsPerSet = atoi(optarg);
+                break;
+			case 'z':
+                outputFoundPatterns = true;
                 break;
             case 'g':
                 gridSize = atof(optarg);
@@ -166,6 +170,7 @@ int main(int argc, char* argv[])
     int videoFrameCount[MAX_CAMS];
 
     vector<string> inputList[MAX_CAMS], culledList;
+    vector<string> outputList[MAX_CAMS];
 
     bool sameNum = true;
 
@@ -330,6 +335,8 @@ int main(int argc, char* argv[])
             randomCulling(culledList, maxFramesToLoad);
 
             sort(culledList.begin(), culledList.end());
+            
+            outputList[0].assign(culledList.begin(), culledList.end());
 
             for (int qrw = 0; qrw < culledList.size(); qrw++)
             {
@@ -518,6 +525,22 @@ int main(int argc, char* argv[])
     // Run through each camera separately to find the patterns
     for (unsigned int nnn = 0; nnn < numCams; nnn++)
     {
+		
+		char outputFilename[256];
+		
+		char newDirectoryPath[256], patternDirectoryPath[256];
+
+		sprintf(newDirectoryPath, "%s/%d-u", directory, nnn);
+		sprintf(patternDirectoryPath, "%s/%d-a", directory, nnn);
+		
+		if (outputFoundPatterns) {
+
+			#if defined(WIN32)
+			CreateDirectory(patternDirectoryPath, NULL);
+			#else
+			mkdir(patternDirectoryPath, DEFAULT_MKDIR_PERMISSIONS);
+			#endif
+		}
 
         index = 0;
         frameIndex = 0;
@@ -567,6 +590,10 @@ int main(int argc, char* argv[])
 
 
             }
+            
+            if (outputFoundPatterns) {
+				sprintf(outputFilename, "%s/%s", patternDirectoryPath, (culledList.at(index)).c_str());
+			}
 
             //printf("%s << filename = %s\n", __FUNCTION__, filename);
 
@@ -613,6 +640,8 @@ int main(int argc, char* argv[])
             
              if (verboseMode) printf("%s << Pattern searched for. Result = (%d); cornerSet.size() = (%d)\n", __FUNCTION__, patternFound, cornerSet.size());
 
+			
+
             //printf("%s << Pattern found? %d\n", __FUNCTION__, patternFound);
 
             inputMat[nnn].copyTo(dispMat);
@@ -629,6 +658,10 @@ int main(int argc, char* argv[])
                 imshow("displayWindow", dispMat);
                 waitKey(40);
             }
+            
+            if (outputFoundPatterns) {
+				imwrite(outputFilename, dispMat);
+			}
 
             index++;
 
@@ -822,7 +855,8 @@ int main(int argc, char* argv[])
 
                     if (inputIsFolder)
                     {
-                        sprintf(outputFilename, "%s/%d.jpg", newDirectoryPath, i);
+                        //sprintf(outputFilename, "%s/%d.jpg", newDirectoryPath, i);
+                        sprintf(outputFilename, "%s/%s", newDirectoryPath, (inputList[nnn].at(i)).c_str());
                     }
                     else
                     {
