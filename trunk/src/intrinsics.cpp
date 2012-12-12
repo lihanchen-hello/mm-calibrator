@@ -125,7 +125,8 @@ void optimizeCalibrationSet(Size imSize,
                             vector<int>& selectedTags,
                             int selection,
                             int num,
-                            bool debugMode) 
+                            bool debugMode,
+                            int intrinsicsFlags) 
 {
 	
 	if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d].\n", __FUNCTION__, 0);
@@ -421,7 +422,7 @@ void optimizeCalibrationSet(Size imSize,
 
 						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << imSize = (%d, %d); objectPoints.at(0).size() = %d; tempFrameTester.at(0).size() = %d\n", __FUNCTION__, imSize.height, imSize.width, objectPoints.at(0).size(), tempFrameTester.at(0).size());
 
-                        calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+                        calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, intrinsicsFlags);
 
 						if (INTRINSICS_HPP_DEBUG_MODE > 0) printf("%s << DEBUG [%d][%d][%d][%d]\n", __FUNCTION__, 11, N, i, 33);
 
@@ -573,7 +574,7 @@ void optimizeCalibrationSet(Size imSize,
                 tempFrameTester.push_back(candidatePatternsCpy.at(currentSeedSet[jjj]));
             }
 
-            calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+            calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, intrinsicsFlags);
 
             currentSeedScore = calculateERE(imSize, objectPoints.at(0), fullSetCorners, cameraMatrix, distCoeffs);
 
@@ -654,7 +655,7 @@ void optimizeCalibrationSet(Size imSize,
 
                         //printf("%s << objectPoints.size() = %d; tempFrameTester.size() = %d\n", __FUNCTION__, objectPoints.size(), tempFrameTester.size());
 
-                        calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+                        calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, intrinsicsFlags);
 
                         //printf("%s << objectPoints.at(0).size() = %d; fullSetCorners.size() = %d\n", __FUNCTION__, objectPoints.at(0).size(), fullSetCorners.size());
 
@@ -768,7 +769,7 @@ void optimizeCalibrationSet(Size imSize,
                     tempFrameTester.push_back(candidatePatternsCpy.at(currentIndices.at(j)));
                 }
 
-                err = calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+                err = calibrateCamera(objectPoints, tempFrameTester, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, intrinsicsFlags);
 
                 Mat fovMat, errMat;
                 double fovScore, errScore;
@@ -842,7 +843,7 @@ void optimizeCalibrationSet(Size imSize,
                 candidatePatterns.erase(candidatePatterns.begin()+randomNum);
                 //printf("%s << oP.size() = %d; nC.size() = %d\n", __FUNCTION__, objectPoints.size(), newCorners.size());
 
-                err = calibrateCamera(objectPoints, newCorners, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, INTRINSICS_FLAGS);
+                err = calibrateCamera(objectPoints, newCorners, imSize, cameraMatrix, distCoeffs, rvecs, tvecs, intrinsicsFlags);
 
                 Mat fovMat, errMat;
                 double fovScore, errScore;

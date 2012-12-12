@@ -11,12 +11,13 @@
 // Restrictive: CV_CALIB_FIX_K5 + CV_CALIB_FIX_K4 + CV_CALIB_FIX_K3 + CV_CALIB_FIX_K2 + CV_CALIB_FIX_PRINCIPAL_POINT + CV_CALIB_FIX_ASPECT_RATIO + CV_CALIB_ZERO_TANGENT_DIST
 // Rational: CV_CALIB_RATIONAL_MODEL
 // Conventional: 0
-#define INTRINSICS_FLAGS 0 // CV_CALIB_RATIONAL_MODEL
+#define DEFAULT_INTRINSICS_FLAGS 			0
 
-#define ABSOLUTE_MAX_FRAMES_TO_STORE 1000
-#define RADIAL_LENGTH 1000
+#define ABSOLUTE_MAX_FRAMES_TO_STORE 		1000
+#define RADIAL_LENGTH 						1000
+#define DEFAULT_NUM							10
 
-#define INTRINSICS_HPP_DEBUG_MODE 0
+#define INTRINSICS_HPP_DEBUG_MODE 			0
 
 //#include "cv_utils.hpp"
 #include "improc.h"
@@ -33,8 +34,9 @@ void optimizeCalibrationSet(Size imSize,
                             cv::vector<Point3f> row,
                             cv::vector<int>& selectedTags,
                             int selection = ENHANCED_MCM_OPTIMIZATION_CODE,
-                            int num = 10,
-                            bool debugMode = false);
+                            int num = DEFAULT_NUM,
+                            bool debugMode = false,
+                            int intrinsicsFlags = DEFAULT_INTRINSICS_FLAGS);
 
 /// \brief      Calculate the Extended Reprojection Error: The reprojection error over a desired set of frames.
 double calculateERE(Size imSize,

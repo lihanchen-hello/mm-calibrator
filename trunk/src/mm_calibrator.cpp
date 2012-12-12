@@ -28,6 +28,8 @@ int main(int argc, char* argv[])
     bool verboseMode = DEFAULT_DEBUG_MODE;
     
     bool providedMSERparams = false;
+    
+    int intrinsicsFlags = DEFAULT_INTRINSICS_FLAGS;
 
     // --------------------------------------------- PARSING
     //printf("%s << Parsing arguments...\n", __FUNCTION__);
@@ -52,13 +54,16 @@ int main(int argc, char* argv[])
     {
 
 
-        while ((c = getopt(argc, argv, "qd:n:iet:a:b:g:x:y:so:uhvp:c:z")) != -1)
+        while ((c = getopt(argc, argv, "a:b:c:d:eg:hin:o:p:qrst:uvx:y:z")) != -1)
         {
 
             switch (c)
             {
             case 'd':
                 directory = optarg;
+                break;
+			case 'r':
+                intrinsicsFlags += CV_CALIB_RATIONAL_MODEL;
                 break;
             case 'n':
                 numCams = atoi(optarg);
@@ -730,7 +735,7 @@ int main(int argc, char* argv[])
             printf("%s << Optimizing Pattern Set...\n", __FUNCTION__);
             // Optimize which frames to use here, replacing the corners vector and other vectors with new set
             //optimizeCalibrationSet(inputMat[nnn], distributionMap.at(nnn), candidatesList[nnn], intrinsicsList, row, optimizationCode, min((int)maxPatternsPerSet, (int)intrinsicsList.size()), radialDistribution, tagNames[nnn], selectedTags[nnn]);
-			optimizeCalibrationSet(inputMat[nnn].size(), candidatesList[nnn], candidatesList[nnn], row, selectedTags[nnn]);
+			optimizeCalibrationSet(inputMat[nnn].size(), candidatesList[nnn], candidatesList[nnn], row, selectedTags[nnn], ENHANCED_MCM_OPTIMIZATION_CODE, DEFAULT_NUM, false, intrinsicsFlags);
 
             cv::vector< cv::vector<Point3f> > objectPoints;
             cv::vector<Mat> rvecs, tvecs;
@@ -757,7 +762,7 @@ int main(int argc, char* argv[])
 
             double reprojError, extendedReprojError;
 
-            reprojError = calibrateCamera(objectPoints, candidatesList[nnn], inputMat[nnn].size(), cameraMatrix[nnn], distCoeffs[nnn], rvecs, tvecs, INTRINSICS_FLAGS);
+            reprojError = calibrateCamera(objectPoints, candidatesList[nnn], inputMat[nnn].size(), cameraMatrix[nnn], distCoeffs[nnn], rvecs, tvecs, intrinsicsFlags);
 
             printf("%s << Calibration DONE.\n", __FUNCTION__);
 
