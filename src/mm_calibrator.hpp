@@ -60,6 +60,7 @@ static void usage(const char *argv0)
 			[0] Regular chessboard\n\
 			[1] Mask\n\
 			[2] Thermal chessboard\n");
+	printf("	-r	Use rational (8-parameter) rather than plumb-bob (5-parameter) distortion model.\n");
     printf("	-a	Max number of patterns to keep.\n");
     printf("	-b	Max number of patterns per set.\n");
     printf("	-g	Side length of square in mm.\n");
