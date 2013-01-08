@@ -7,4 +7,5 @@ The idea of this page is that it could be used to provide links to small calibra
 
 = Datasets =
 
-  * [http://dl.dropbox.com/u/28723659/miricle-307k-intrinsics.zip Thermal-infrared intrinsic footage]
+  * [http://code.google.com/p/mm-calibrator/downloads/detail?name=miricle-110k-sample.zip Miricle 110K Example Footage]
+  * [http://code.google.com/p/mm-calibrator/downloads/detail?name=miricle-307k-sample.zip Miricle 307K Example Footage]
