@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
     
     bool providedMSERparams = false;
     
+    bool searchOnlyForFocalLengths = false;
+    
     int intrinsicsFlags = DEFAULT_INTRINSICS_FLAGS;
 
     // --------------------------------------------- PARSING
@@ -54,7 +56,7 @@ int main(int argc, char* argv[])
     {
 
 
-        while ((c = getopt(argc, argv, "a:b:c:d:eg:hin:o:p:qrst:uvx:y:z")) != -1)
+        while ((c = getopt(argc, argv, "a:b:c:d:efg:hin:o:p:qrst:uvx:y:z")) != -1)
         {
 
             switch (c)
@@ -64,6 +66,10 @@ int main(int argc, char* argv[])
                 break;
 			case 'r':
                 intrinsicsFlags += CV_CALIB_RATIONAL_MODEL;
+                break;
+			case 'f':
+                intrinsicsFlags += SEARCH_ONLY_FOR_BASIC_PARAMETERS;
+                searchOnlyForFocalLengths = true;
                 break;
             case 'n':
                 numCams = atoi(optarg);
@@ -313,7 +319,7 @@ int main(int argc, char* argv[])
 
 
 
-            printf("%s << inputList[%d].size() = %d\n", __FUNCTION__, nnn, inputList[nnn].size());
+            printf("%s << inputList[%d].size() = %d\n", __FUNCTION__, nnn, (int)inputList[nnn].size());
 
 
 
@@ -496,8 +502,8 @@ int main(int argc, char* argv[])
 			}
 		}
 	} else {
-		for (int i = 0; i <= y; i++) {
-			for (int j = 0; j <= x; j++) {
+		for (int i = 0; i < y; i++) {
+			for (int j = 0; j < x; j++) {
 				row.push_back(Point3f(i*gridSize, j*gridSize, 0.0));
 			}
 		}
@@ -583,7 +589,7 @@ int main(int argc, char* argv[])
                 
                 inputMat[nnn] = imread(filename);
                 
-                if (verboseMode) printf("%s << File read.\n", __FUNCTION__);
+                //if (verboseMode) printf("%s << File read.\n", __FUNCTION__);
             }
             else
             {
@@ -604,7 +610,7 @@ int main(int argc, char* argv[])
 
             allImages[nnn].push_back(inputMat[nnn]);
             
-            if (verboseMode) printf("%s << Image pushed back.\n", __FUNCTION__);
+            //if (verboseMode) printf("%s << Image pushed back.\n", __FUNCTION__);
 
             //printf("%s << DEBUG {%d}{%d}\n", __FUNCTION__, 0, 5);
 
@@ -643,7 +649,7 @@ int main(int argc, char* argv[])
                 break;
             }
             
-             if (verboseMode) printf("%s << Pattern searched for. Result = (%d); cornerSet.size() = (%d)\n", __FUNCTION__, patternFound, cornerSet.size());
+             if (verboseMode) printf("%s << Pattern searched for. Result = (%d); cornerSet.size() = (%d)\n", __FUNCTION__, patternFound, (int)cornerSet.size());
 
 			
 
@@ -733,9 +739,22 @@ int main(int argc, char* argv[])
             }
 
             printf("%s << Optimizing Pattern Set...\n", __FUNCTION__);
+            
+            if (verboseMode) {
+				printf("%s << inputMat[%d].size() = (%d,%d)\n", __FUNCTION__, nnn, inputMat[nnn].cols, inputMat[nnn].rows);
+				printf("%s << candidatesList[%d].size() = %d\n", __FUNCTION__, nnn, (int)candidatesList[nnn].size());
+				printf("%s << row.size() = %d\n", __FUNCTION__, (int)row.size());
+				printf("%s << selectedTags[%d].size() = %d\n", __FUNCTION__, nnn, (int)selectedTags[nnn].size());
+				
+				if (searchOnlyForFocalLengths) {
+					printf("%s << searchOnlyForFocalLengths : intrinsicsFlags = (%d)\n", __FUNCTION__, intrinsicsFlags);
+				}
+			}
+			
+			
             // Optimize which frames to use here, replacing the corners vector and other vectors with new set
             //optimizeCalibrationSet(inputMat[nnn], distributionMap.at(nnn), candidatesList[nnn], intrinsicsList, row, optimizationCode, min((int)maxPatternsPerSet, (int)intrinsicsList.size()), radialDistribution, tagNames[nnn], selectedTags[nnn]);
-			optimizeCalibrationSet(inputMat[nnn].size(), candidatesList[nnn], candidatesList[nnn], row, selectedTags[nnn], ENHANCED_MCM_OPTIMIZATION_CODE, DEFAULT_NUM, false, intrinsicsFlags);
+			optimizeCalibrationSet(inputMat[nnn].size(), candidatesList[nnn], candidatesList[nnn], row, selectedTags[nnn], ENHANCED_MCM_OPTIMIZATION_CODE, maxPatternsPerSet, false, intrinsicsFlags);
 
             cv::vector< cv::vector<Point3f> > objectPoints;
             cv::vector<Mat> rvecs, tvecs;
@@ -757,10 +776,19 @@ int main(int argc, char* argv[])
             }
             else
             {
-                printf("%s << Total number of patterns remaining after optimization: %d\n", __FUNCTION__, candidatesList[nnn].size());
+                printf("%s << Total number of patterns remaining after optimization: %d\n", __FUNCTION__, (int)candidatesList[nnn].size());
             }
 
             double reprojError, extendedReprojError;
+            
+            if (intrinsicsFlags == SEARCH_ONLY_FOR_BASIC_PARAMETERS) {
+				cameraMatrix[nnn] = Mat::eye(3,3,CV_64FC1);
+				cameraMatrix[nnn].at<double>(0,0) = 525.0;
+				cameraMatrix[nnn].at<double>(1,1) = 525.0;
+				cameraMatrix[nnn].at<double>(0,2) = 319.5;
+				cameraMatrix[nnn].at<double>(1,2) = 239.5;
+			}
+						
 
             reprojError = calibrateCamera(objectPoints, candidatesList[nnn], inputMat[nnn].size(), cameraMatrix[nnn], distCoeffs[nnn], rvecs, tvecs, intrinsicsFlags);
 
@@ -826,7 +854,7 @@ int main(int argc, char* argv[])
 #endif
 
 
-                printf("%s << Undistorting Images... (%d)\n", __FUNCTION__, inputList[nnn].size());
+                printf("%s << Undistorting Images... (%d)\n", __FUNCTION__, (int)inputList[nnn].size());
                 Mat undistortedMat(inputMat[nnn].size(), CV_8UC3);
 
                 //videoReader.set(CV_CAP_PROP_POS_AVI_RATIO, 0.00);

@@ -23,5 +23,5 @@ note: 	This command will not work unless the datasets are correctly placed.
 		Each camera (even if calibrating just one) should be stored under its 
 		own numbered directory, e.g. mmcal_test/0/ mmcal_test/1/ etc...
 	
-	../bin/mm_calibrator -d /home/user/Downloads/miricle-307k-sample -n 1 -i -x 6 -y 4
+	../bin/mmcalibrator -d /home/user/Downloads/miricle-307k-sample -n 1 -i -x 6 -y 4
 
